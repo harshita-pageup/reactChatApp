@@ -53,10 +53,10 @@ export function Signup() {
 
                   <div className="flex flex-col gap-2 col-span-2 place-items-center">
                     <Button type="submit" className="w-sm">
-                      Login
+                      Create Account
                     </Button>
                     <Button variant="outline" className="w-sm">
-                      Login with Google
+                      Signup with Google
                     </Button>
                   </div>
                 </div>
