@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,15 +9,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router";
-
-interface FormData {
-  username: string
-  password: string
-}
+import { Link, useNavigate } from "react-router";
+import { isAuthenticated, setToken } from "@/utils/auth";
+import { LoginRequest } from "@/types/auth";
 
 export function Login() {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<LoginRequest>({
       username: "",
       password: ""
     })
@@ -25,6 +22,13 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate("/dashboard"); // Adjust the path to where you want to redirect
+    }
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
@@ -63,9 +67,10 @@ export function Login() {
         throw new Error("Login failed. Please check your credentials.");
       }
 
-      const data = await response.json();
-      // Handle success (e.g., redirect to a different page)
-      console.log("Login successful:", data);
+      const json_data = await response.json();
+
+      setToken(json_data.data.token);
+      navigate("/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message); 
