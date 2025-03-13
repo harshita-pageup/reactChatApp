@@ -10,65 +10,62 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Link, useNavigate } from "react-router-dom"
-import { SignupRequest } from "@/types/auth"
+import * as Yup from "yup";
+import { setToken } from "@/utils/auth"
+import { useFormik } from "formik"
 
 export function Signup() {
-  const [formData, setFormData] = useState<SignupRequest>({
-    name: "",
-    email: "",
-    contact: "",
-    password: "",
-    confirmPassword: "",
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target
-    setFormData((prevData) => ({
-      ...prevData,
-      [id]: value,
-    }))
-  }
+  const validationSchema = Yup.object({
+    name: Yup.string().required("Name is required"),
+    email: Yup.string().max(150).email("Invalid email address").required("Email is required"),
+    contact: Yup.string().required("Contact number is required"),
+    password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref('password')], "Passwords must match")
+      .required("Confirm Password is required"),
+  });
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-    if (!formData.name) newErrors.name = "Name is required"
-    if (!formData.email) newErrors.email = "Email is required"
-    if (!formData.contact) newErrors.contact = "Contact is required"
-    if (!formData.password) newErrors.password = "Password is required"
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+  const formik = useFormik({
+    initialValues: { name: "", email: "", contact: "", password: "", confirmPassword: "" },
+    validationSchema,
+    onSubmit: async (values) => {
+      setLoading(true);
+      setError("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+      const apiUrl = import.meta.env.VITE_API_URL;
 
-    if (!validateForm()) return
+      try {
+        const response = await fetch(`${apiUrl}/api/registerUser`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
 
-    const apiUrl = import.meta.env.VITE_API_URL;
-    const response = await fetch(`${apiUrl}/api/registerUser`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    })
+        const json_data = await response.json();
 
-    const data = await response.json()
+        if (!response.ok) {
+          throw new Error(json_data.msg);
+        }
 
-    if (response.ok) {
-      navigate("/")
-    } else {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        apiError: data.message || "An error occurred, please try again.",
-      }))
-    }
-  }
+        setToken(json_data.data.token);
+        navigate("/dashboard");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -82,45 +79,51 @@ export function Signup() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={formik.handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="name">Name</Label>
-                    <Input id="name" type="text" placeholder="John Doe" value={formData.name} onChange={handleChange} />
-                    {errors.name && <p className="text-red-500">{errors.name}</p>}
+                    <Input id="name" type="text" placeholder="John Doe" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.name} />
+                    {formik.errors.name && formik.touched.name && (
+                      <p className="text-red-500">{formik.errors.name}</p>
+                    )}
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="m@example.com" value={formData.email} onChange={handleChange} />
-                    {errors.email && <p className="text-red-500">{errors.email}</p>}
+                    <Input id="email" type="email" placeholder="m@example.com" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.email} />
+                    {formik.errors.email && formik.touched.email && (
+                      <p className="text-red-500">{formik.errors.email}</p>
+                    )}
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="contact">Contact</Label>
-                    <Input id="contact" type="tel" placeholder="8989898989" value={formData.contact} onChange={handleChange} />
-                    {errors.contact && <p className="text-red-500">{errors.contact}</p>}
+                    <Input id="contact" type="tel" placeholder="8989898989" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.contact} />
+                    {formik.errors.contact && formik.touched.contact && (
+                      <p className="text-red-500">{formik.errors.contact}</p>
+                    )}
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" placeholder="••••••••••" value={formData.password} onChange={handleChange} />
-                    {errors.password && (
-                      <p className="text-red-500">{errors.password}</p>
+                    <Input id="password" type="password" placeholder="••••••••••" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.password} />
+                    {formik.errors.password && formik.touched.password && (
+                      <p className="text-red-500">{formik.errors.password}</p>
                     )}
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="confirmPassword">Retype Password</Label>
-                    <Input id="confirmPassword" type="password" placeholder="••••••••••" value={formData.confirmPassword} onChange={handleChange} />
-                    {errors.confirmPassword && (
-                      <p className="text-red-500">{errors.confirmPassword}</p>
+                    <Input id="confirmPassword" type="password" placeholder="••••••••••" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.confirmPassword} />
+                    {formik.errors.confirmPassword && formik.touched.confirmPassword && (
+                      <p className="text-red-500">{formik.errors.confirmPassword}</p>
                     )}
                   </div>
 
                   <div className="flex flex-col gap-2 col-span-2 place-items-center">
-                    <Button type="submit" className="w-sm">
-                      Create Account
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Please wait..." : "Create Account"}
                     </Button>
                     <Button variant="outline" className="w-sm">
                       Signup with Google
@@ -128,9 +131,9 @@ export function Signup() {
                   </div>
                 </div>
 
-                {errors.apiError && (
+                {error && (
                   <div className="mt-4 text-center text-red-500">
-                    {errors.apiError}
+                    <p>{error}</p>
                   </div>
                 )}
 
