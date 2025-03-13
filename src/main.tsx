@@ -6,6 +6,7 @@ import { Login } from './pages/auth/Login'
 import { Signup } from './pages/auth/Signup'
 import { ForgotPassword } from './pages/auth/ForgotPassword'
 import { Dashboard } from './pages/dashboard/Dashboard'
+import Chats from './pages/Chats'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -14,6 +15,7 @@ const router = createBrowserRouter(
       <Route path='/signup' element={<Signup />} />
       <Route path='/forgot-password' element={<ForgotPassword />} />
       <Route path='/dashboard' element={<Dashboard />} />
+      <Route path='/chats' element={<Chats />} />
     </>
   )
 )
