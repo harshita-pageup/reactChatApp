@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom"
 import * as Yup from "yup";
 import { setToken } from "@/utils/auth"
 import { useFormik } from "formik"
+import { SignupRequest } from "@/types/auth"
 
 export function Signup() {
   const [loading, setLoading] = useState(false);
@@ -29,7 +30,7 @@ export function Signup() {
       .required("Confirm Password is required"),
   });
 
-  const formik = useFormik({
+  const formik = useFormik<SignupRequest>({
     initialValues: { name: "", email: "", contact: "", password: "", confirmPassword: "" },
     validationSchema,
     onSubmit: async (values) => {
@@ -49,12 +50,13 @@ export function Signup() {
 
         const json_data = await response.json();
 
-        if (!response.ok) {
+        if(!json_data.status) {
           throw new Error(json_data.msg);
         }
-
-        setToken(json_data.data.token);
-        navigate("/dashboard");
+        else {
+          setToken(json_data.data.token);
+          navigate("/chats");
+        }
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);

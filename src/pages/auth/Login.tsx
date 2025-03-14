@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom"; // Fixing the import of `u
 import { setToken } from "@/utils/auth";
 import * as Yup from "yup";
 import { useFormik } from "formik";
+import { LoginRequest } from "@/types/auth";
 
 export function Login() {
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export function Login() {
     password: Yup.string().required("Password is required"),
   });
 
-  const formik = useFormik({
+  const formik = useFormik<LoginRequest>({
     initialValues: { username: "", password: "" },
     validationSchema,
     onSubmit: async (values) => {
@@ -41,16 +42,16 @@ export function Login() {
           },
           body: JSON.stringify(values),
         });
-        // console.log(response);
-        if (!response.ok) {
-          throw new Error("Login failed. Please check your credentials.");
-        }
 
         const json_data = await response.json();
 
-        setToken(json_data.data.token);
-        // console.log(json_data.data.token);
-        navigate("/dashboard");
+        if(!json_data.status) {
+          throw new Error(json_data.msg);
+        }
+        else {
+          setToken(json_data.data.token);
+          navigate("/chats");
+        }
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);

@@ -1,32 +1,30 @@
-import { StrictMode } from 'react'
+import { JSX, StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router'
+import { createBrowserRouter, createRoutesFromElements, Navigate, Route, RouterProvider } from 'react-router'
 import { Login } from './pages/auth/Login'
 import { Signup } from './pages/auth/Signup'
 import { ForgotPassword } from './pages/auth/ForgotPassword'
-import { Dashboard } from './pages/dashboard/Dashboard'
 import Chats from './pages/Chats'
-import ProtectedRoute from './pages/auth/ProtectedRoute'
-import { AuthProvider } from './context/AuthContext'
+import { isAuthenticated } from './utils/auth'
+
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  return isAuthenticated() ? children : <Navigate to="/" />;
+};
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
-      <Route path='/' element={<Login />} />
-      <Route path='/signup' element={<Signup />} />
-      <Route path='/forgot-password' element={<ForgotPassword />} />
-      <Route path='/dashboard' element={<Dashboard />} />
-      <Route path='/chats' element={<Chats />} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/" element={isAuthenticated() ? <Navigate to="/chats" /> : <Login />} />
+      <Route path="/signup" element={isAuthenticated() ? <Navigate to="/chats" /> : <Signup />} />
+      <Route path="/forgot-password" element={isAuthenticated() ? <Navigate to="/chats" /> : <ForgotPassword />} />
+      <Route path="/chats" element={<ProtectedRoute><Chats /></ProtectedRoute>} />
     </>
   )
 )
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>  
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <RouterProvider router={router} />
   </StrictMode>
 )
