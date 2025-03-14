@@ -10,15 +10,15 @@ import UserAvatar from "./user-avatar"
 
 type ChatBubbleProps = {
   message: Message,
-  addReaction: (reaction: string, message: Message) => void
+  addReaction: (reaction: string, message: Message) => void,
+  setReplyMsg: (msg: Message) => void
 }
-
-const ChatBubble = ({ message, addReaction }: ChatBubbleProps) => {
+const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
   if (message.isSender) {
     return (
       <div className="group flex flex-row items-start gap-1">
         <div className="ml-auto"></div>
-        <ActionButtons message={message} addReaction={addReaction} />
+        <ActionButtons message={message} addReaction={addReaction} setReplyMsg={setReplyMsg} />
 
         <div className="flex w-max max-w-[75%] flex-col gap-1 rounded-lg pl-3 pr-12 py-2 text-sm bg-primary text-primary-foreground z-10 relative">
           <p>{message.message}</p>
@@ -36,14 +36,18 @@ const ChatBubble = ({ message, addReaction }: ChatBubbleProps) => {
           {message.reactions.length > 0 && (<DisplayReactions reactions={message.reactions} isSender={message.isSender} />)}
         </div>
 
-        <ActionButtons message={message} addReaction={addReaction} />
+        <ActionButtons message={message} addReaction={addReaction} setReplyMsg={setReplyMsg} />
       </div>
     )
   }
 }
 
-type ActionButtonsProps = { message: Message, addReaction: (reaction: string, message: Message) => void }
-function ActionButtons({ message, addReaction }: ActionButtonsProps) {
+type ActionButtonsProps = {
+  message: Message,
+  addReaction: (reaction: string, message: Message) => void,
+  setReplyMsg: (msg: Message) => void
+}
+function ActionButtons({ message, addReaction, setReplyMsg }: ActionButtonsProps) {
   return (
     <>
       <Popover>
@@ -65,7 +69,7 @@ function ActionButtons({ message, addReaction }: ActionButtonsProps) {
           </div>
         </PopoverContent>
       </Popover>
-      <Button variant="ghost" size="icon" className="z-20 transition-opacity opacity-0 group-hover:opacity-100" >
+      <Button variant="ghost" size="icon" className="z-20 transition-opacity opacity-0 group-hover:opacity-100" onClick={() => setReplyMsg(message)}>
         <Reply className="h-5 w-5" />
       </Button>
     </>

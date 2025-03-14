@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { SidebarProvider } from '@/components/ui/sidebar'
 import UserAvatar from '@/components/user-avatar';
 import { ChatUser, Message } from '@/types/auth';
-import { Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video } from 'lucide-react';
+import { Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const Chats = () => {
@@ -172,6 +172,7 @@ type ChatScreenProps = {
 }
 function ChatScreen({ selectedUser }: ChatScreenProps) {
   const [typeMsg, setTypeMsg] = useState<string>('');
+  const [replyMsg, setReplyMsg] = useState<Message | null>(null);
   const [messages, setMessages] = useState<Record<string, Message[]>>({
     "2025-03-10": [
       { id: 1, message: "Hey Olivia, are you free this afternoon?", isSender: true, replyTo: null, reactions: [{ emojie: "👍", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-10T09:00:00Z" },
@@ -242,7 +243,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
         id: prev[date].length + 1,
         message,
         isSender: true,
-        replyTo: null,
+        replyTo: replyMsg,
         reactions: [],
         date: new Date().toISOString()
       })
@@ -253,17 +254,51 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
 
   const addReaction = (reaction: string, message: Message) => {
     let date = new Date(message.date).toISOString().split('T')[0];
+    let currentUser = {
+      id: 1,
+      name: 'Abhinav Namdeo',
+      email: 'abhaynam22@gmail.com',
+      profile: ''
+    }
     setMessages((prev) => {
-      prev[date].filter((msg) => msg.id === message.id)[0].reactions.push({
-        emojie: reaction,
-        user: {
-          id: Math.random(),
-          name: 'Abhinav Namdeo',
-          email: 'abhaynam22@gmail.com',
-          profile: ''
+      const updatedMessages = { ...prev };
+      const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === message.id);
+
+      if (messageToUpdate) {
+        const existingReactionIndex = messageToUpdate.reactions.findIndex(
+          (r) => r.user.email === currentUser.email // Or use r.user.id === currentUser.id
+        );
+
+        if (existingReactionIndex !== -1) {
+          messageToUpdate.reactions = [
+            ...messageToUpdate.reactions.slice(0, existingReactionIndex),
+            {
+              ...messageToUpdate.reactions[existingReactionIndex],
+              emojie: reaction,
+            },
+            ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
+          ];
+        } else {
+          messageToUpdate.reactions = [
+            ...messageToUpdate.reactions,
+            {
+              emojie: reaction,
+              user: {
+                id: currentUser.id,
+                name: currentUser.name,
+                email: currentUser.email,
+                profile: currentUser.profile || '',
+              },
+            },
+          ];
         }
-      })
-      return prev;
+
+        updatedMessages[date] = updatedMessages[date].map((msg) =>
+          msg.id === message.id ? { ...msg } : msg
+        );
+      }
+
+      return updatedMessages;
     })
   }
 
@@ -304,30 +339,44 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
               })}
             </div>
             {dateMessages.map((message) => (
-              <ChatBubble key={message.id} message={message} addReaction={addReaction} />
+              <ChatBubble key={message.id} message={message} addReaction={addReaction} setReplyMsg={setReplyMsg} />
             ))}
           </div>
         ))}
         <div ref={chatRef}></div>
       </div>
 
-      <div className="fixed bottom-0 right-0 flex justify-center items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
-        <Button variant='outline' size='icon'>
-          <Paperclip />
-        </Button>
-        <Button variant='outline' size='icon'>
-          <SmilePlus />
-        </Button>
+      <div className="fixed bottom-0 right-0 w-[calc(100%-20rem)] z-20 bg-sidebar">
+        {replyMsg && (
+          <div className="flex justify-center items-end px-4 h-12 pt-1.5 gap-2">
+            <Button variant='outline' size='icon' onClick={() => setReplyMsg(null)}><X /></Button>
+            <div className="w-full flex justify-start items-center gap-2 bg-accent h-full rounded-md px-2 py-1">
+              <div className="w-1 rounded-md bg-primary h-full my-2"></div>
+              <div className="flex flex-col">
+                <h4 className='text-sm leading-4 font-bold'>{replyMsg.isSender ? 'You' : selectedUser.name}</h4>
+                <p className='text-xs'>{replyMsg.message}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        <div className='flex justify-center items-center px-4 h-14'>
+          <Button variant='outline' size='icon'>
+            <Paperclip />
+          </Button>
+          <Button variant='outline' size='icon'>
+            <SmilePlus />
+          </Button>
 
-        <Input placeholder='Type a message...' className='mx-2' value={typeMsg} onChange={(e) => setTypeMsg(e.target.value)} onKeyDown={e => {
-          if (e.key === 'Enter') {
-            addMessage(typeMsg);
-          }
-        }} />
+          <Input placeholder='Type a message...' className='mx-2' value={typeMsg} onChange={(e) => setTypeMsg(e.target.value)} onKeyDown={e => {
+            if (e.key === 'Enter') {
+              addMessage(typeMsg);
+            }
+          }} />
 
-        <Button disabled={!typeMsg} size='icon' onClick={() => addMessage(typeMsg)}>
-          <SendHorizonal />
-        </Button>
+          <Button disabled={!typeMsg} size='icon' onClick={() => addMessage(typeMsg)}>
+            <SendHorizonal />
+          </Button>
+        </div>
       </div>
     </>
   )
