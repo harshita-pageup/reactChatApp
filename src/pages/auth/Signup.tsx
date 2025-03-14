@@ -14,6 +14,9 @@ import * as Yup from "yup";
 import { setToken } from "@/utils/auth"
 import { useFormik } from "formik"
 import { SignupRequest } from "@/types/auth"
+import AlertMsg from "@/components/alert-msg"
+import ValidationMsg from "@/components/validation-err"
+import { Loader2 } from "lucide-react"
 
 export function Signup() {
   const [loading, setLoading] = useState(false);
@@ -50,7 +53,7 @@ export function Signup() {
 
         const json_data = await response.json();
 
-        if(!json_data.status) {
+        if (!json_data.status) {
           throw new Error(json_data.msg);
         }
         else {
@@ -72,6 +75,9 @@ export function Signup() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-xl">
+        {error && (
+          <AlertMsg msg={error} />
+        )}
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
@@ -85,59 +91,64 @@ export function Signup() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="grid gap-2">
                     <Label htmlFor="name">Name</Label>
-                    <Input id="name" type="text" placeholder="John Doe" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.name} />
-                    {formik.errors.name && formik.touched.name && (
-                      <p className="text-red-500">{formik.errors.name}</p>
-                    )}
+                    <div>
+                      <Input id="name" type="text" placeholder="John Doe" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.name} />
+                      {formik.errors.name && formik.touched.name && (
+                        <ValidationMsg msg={formik.errors.name} />
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="m@example.com" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.email} />
-                    {formik.errors.email && formik.touched.email && (
-                      <p className="text-red-500">{formik.errors.email}</p>
-                    )}
+                    <div>
+                      <Input id="email" type="email" placeholder="m@example.com" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.email} />
+                      {formik.errors.email && formik.touched.email && (
+                        <ValidationMsg msg={formik.errors.email} />
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="contact">Contact</Label>
-                    <Input id="contact" type="tel" placeholder="8989898989" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.contact} />
-                    {formik.errors.contact && formik.touched.contact && (
-                      <p className="text-red-500">{formik.errors.contact}</p>
-                    )}
+                    <div>
+                      <Input id="contact" type="tel" placeholder="8989898989" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.contact} />
+                      {formik.errors.contact && formik.touched.contact && (
+                        <ValidationMsg msg={formik.errors.contact} />
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" placeholder="••••••••••" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.password} />
-                    {formik.errors.password && formik.touched.password && (
-                      <p className="text-red-500">{formik.errors.password}</p>
-                    )}
+                    <div>
+                      <Input id="password" type="password" placeholder="••••••••••" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.password} />
+                      {formik.errors.password && formik.touched.password && (
+                        <ValidationMsg msg={formik.errors.password} />
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="confirmPassword">Retype Password</Label>
-                    <Input id="confirmPassword" type="password" placeholder="••••••••••" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.confirmPassword} />
-                    {formik.errors.confirmPassword && formik.touched.confirmPassword && (
-                      <p className="text-red-500">{formik.errors.confirmPassword}</p>
-                    )}
+                    <div>
+                      <Input id="confirmPassword" type="password" placeholder="••••••••••" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.confirmPassword} />
+                      {formik.errors.confirmPassword && formik.touched.confirmPassword && (
+                        <ValidationMsg msg={formik.errors.confirmPassword} />
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-2 col-span-2 place-items-center">
                     <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Please wait..." : "Create Account"}
+                      {loading && (<Loader2 className="animate-spin" />)}
+                      Create Account
                     </Button>
-                    <Button variant="outline" className="w-sm">
+                    <Button variant="outline" className="w-full">
                       Signup with Google
                     </Button>
                   </div>
                 </div>
-
-                {error && (
-                  <div className="mt-4 text-center text-red-500">
-                    <p>{error}</p>
-                  </div>
-                )}
 
                 <div className="mt-4 text-center text-sm">
                   Already have an account?{" "}

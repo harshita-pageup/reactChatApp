@@ -16,15 +16,17 @@ const Chats = () => {
       name: 'Harshita Shrivastava',
       email: 'harshita@gmail.com',
       lastMsg: 'Hii, can we meet now?',
-      lastMsgDate: new Date(),
-      profile: 'https://ui-avatars.com/api/Harshita Shrivastava'
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: true,
+      profile: ''
     },
     {
       id: 3,
       name: 'Amit Yadav',
       email: 'amit@gmail.com',
       lastMsg: 'Hello, how are you?',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: true,
       profile: 'https://ui-avatars.com/api/Amit Yadav'
     },
     {
@@ -32,7 +34,8 @@ const Chats = () => {
       name: 'Priya Sharma',
       email: 'priya@gmail.com',
       lastMsg: 'What are you doing?',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Priya Sharma'
     },
     {
@@ -40,7 +43,8 @@ const Chats = () => {
       name: 'Rohan Verma',
       email: 'rohan@gmail.com',
       lastMsg: 'I am fine, thanks!',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Rohan Verma'
     },
     {
@@ -48,7 +52,8 @@ const Chats = () => {
       name: 'Sneha Patel',
       email: 'sneha@gmail.com',
       lastMsg: 'See you soon!',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Sneha Patel'
     },
     {
@@ -56,7 +61,8 @@ const Chats = () => {
       name: 'Vikram Singh',
       email: 'vikram@gmail.com',
       lastMsg: 'Good morning!',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Vikram Singh'
     },
     {
@@ -64,7 +70,8 @@ const Chats = () => {
       name: 'Ananya Gupta',
       email: 'ananya@gmail.com',
       lastMsg: 'Have a great day!',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Ananya Gupta'
     },
     {
@@ -72,7 +79,8 @@ const Chats = () => {
       name: 'Kunal Kapoor',
       email: 'kunal@gmail.com',
       lastMsg: 'How was your day?',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: true,
       profile: 'https://ui-avatars.com/api/Kunal Kapoor'
     },
     {
@@ -80,7 +88,8 @@ const Chats = () => {
       name: 'Neha Choudhary',
       email: 'neha@gmail.com',
       lastMsg: 'I am going to the market.',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Neha Choudhary'
     },
     {
@@ -88,7 +97,8 @@ const Chats = () => {
       name: 'Rajesh Kumar',
       email: 'rajesh@gmail.com',
       lastMsg: 'Call me when you are free.',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Rajesh Kumar'
     },
     {
@@ -96,7 +106,8 @@ const Chats = () => {
       name: 'Shweta Mishra',
       email: 'shweta@gmail.com',
       lastMsg: 'I will be there in 10 minutes.',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Shweta Mishra'
     },
     {
@@ -104,7 +115,8 @@ const Chats = () => {
       name: 'Gaurav Sharma',
       email: 'gaurav@gmail.com',
       lastMsg: 'Let\'s plan something for the weekend.',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Gaurav Sharma'
     },
     {
@@ -112,7 +124,8 @@ const Chats = () => {
       name: 'Divya Singh',
       email: 'divya@gmail.com',
       lastMsg: 'I am waiting for your reply.',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: false,
       profile: 'https://ui-avatars.com/api/Divya Singh'
     },
     {
@@ -120,7 +133,8 @@ const Chats = () => {
       name: 'Manish Verma',
       email: 'manish@gmail.com',
       lastMsg: 'Can you help me with this?',
-      lastMsgDate: new Date(),
+      lastMsgDate: '2025-03-19T08:40:00Z',
+      isOnline: true,
       profile: 'https://ui-avatars.com/api/Manish Verma'
     },
   ]);
@@ -142,7 +156,7 @@ const Chats = () => {
     <SidebarProvider>
       <ChatSidebar chatUsers={chatUsers} selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
 
-      <div className="h-screen w-full">
+      <div className="h-screen w-[calc(100%-20rem)]">
         {selectedUser ? (
           <ChatScreen selectedUser={selectedUser} />
         ) : (
@@ -158,116 +172,102 @@ type ChatScreenProps = {
 }
 function ChatScreen({ selectedUser }: ChatScreenProps) {
   const [typeMsg, setTypeMsg] = useState<string>('');
-  const [messages, setMessages] = useState<Message[]>([
-    { "id": 1, "message": "Hey!", "isSender": true },
-    { "id": 2, "message": "Hey! How’s your day going so far?", "isSender": false },
-    { "id": 3, "message": "Pretty good! Just working on some code.", "isSender": true },
-    { "id": 4, "message": "Nice! What are you working on?", "isSender": false },
-    { "id": 5, "message": "A chat app, actually!", "isSender": true },
-    { "id": 6, "message": "Oh cool! Are you using Flutter for it?", "isSender": false },
-    { "id": 7, "message": "Yeah, Flutter with Firebase for real-time updates.", "isSender": true },
-    {
-      "id": 8,
-      "message": "That’s awesome! I’ve been meaning to learn Flutter. I hear it’s great for cross-platform development and makes UI building super smooth.",
-      "isSender": false
-    },
-    { "id": 9, "message": "It really is! Hot reload is a lifesaver.", "isSender": true },
-    { "id": 10, "message": "I bet! How’s the state management?", "isSender": false },
-    {
-      "id": 11,
-      "message": "Right now, I’m using Riverpod. It’s pretty neat, and I find it more intuitive than Provider. Makes things more scalable.",
-      "isSender": true
-    },
-    { "id": 12, "message": "Interesting! I’ll check it out.", "isSender": false },
-    { "id": 13, "message": "Definitely worth a look!", "isSender": true },
-    {
-      "id": 14,
-      "message": "By the way, are you implementing notifications as well? Would love to see how you handle push notifications.",
-      "isSender": false
-    },
-    { "id": 15, "message": "Yeah! Using Firebase Cloud Messaging for that.", "isSender": true },
-    {
-      "id": 16,
-      "message": "That’s great. I tried it once but ran into issues with iOS background notifications.",
-      "isSender": false
-    },
-    {
-      "id": 17,
-      "message": "Yeah, iOS requires extra setup with APNs. Took me a while to get it working.",
-      "isSender": true
-    },
-    { "id": 18, "message": "Sounds tricky.", "isSender": false },
-    { "id": 19, "message": "It was, but now it works fine!", "isSender": true },
-    { "id": 20, "message": "Awesome! Let me know if you need testers.", "isSender": false },
-    { "id": 21, "message": "That would be great! I’ll send you a link soon.", "isSender": true },
-    { "id": 22, "message": "Looking forward to it!", "isSender": false },
-    {
-      "id": 23,
-      "message": "By the way, are you planning on adding media sharing? Like sending images or voice messages?",
-      "isSender": false
-    },
-    { "id": 24, "message": "Yep! Working on image uploads right now.", "isSender": true },
-    { "id": 25, "message": "Nice! Firebase Storage?", "isSender": false },
-    { "id": 26, "message": "Exactly! Uploading images there and storing the URLs in Firestore.", "isSender": true },
-    { "id": 27, "message": "Smart approach!", "isSender": false },
-    {
-      "id": 28,
-      "message": "Yeah, trying to keep it simple but scalable. Might add video messages later too.",
-      "isSender": true
-    },
-    { "id": 29, "message": "That would be really cool!", "isSender": false },
-    { "id": 30, "message": "Let’s see how it goes!", "isSender": true },
-    {
-      "id": 31,
-      "message": "Oh, I just remembered—are you handling user authentication with Firebase Auth?",
-      "isSender": false
-    },
-    { "id": 32, "message": "Yep, Firebase Auth with Google sign-in.", "isSender": true },
-    { "id": 33, "message": "That’s seamless for users!", "isSender": false },
-    { "id": 34, "message": "Exactly, reduces friction.", "isSender": true },
-    { "id": 35, "message": "Are you planning to add end-to-end encryption?", "isSender": false },
-    {
-      "id": 36,
-      "message": "Eventually, yes! Might use something like Signal’s protocol for that.",
-      "isSender": true
-    },
-    { "id": 37, "message": "That would be next-level security!", "isSender": false },
-    { "id": 38, "message": "Yeah, privacy is key for chat apps.", "isSender": true },
-    { "id": 39, "message": "Agreed!", "isSender": false },
-    { "id": 40, "message": "Oh, gotta run now. Let’s catch up later!", "isSender": true },
-    { "id": 41, "message": "No worries! Talk soon.", "isSender": false },
-    { "id": 42, "message": "See ya!", "isSender": true },
-    {
-      "id": 43,
-      "message": "Oh wait, before you go—do you have any good resources for learning advanced Flutter animations?",
-      "isSender": false
-    },
-    {
-      "id": 44,
-      "message": "Yes! Check out the Flutter.dev animations guide and Rive for interactive animations. Also, there’s a great YouTube channel called Reso Coder that explains them well.",
-      "isSender": true
-    },
-    { "id": 45, "message": "Awesome! I’ll check those out.", "isSender": false },
-    { "id": 46, "message": "Cool, let me know if you need help!", "isSender": true },
-    { "id": 47, "message": "Will do!", "isSender": false },
-    { "id": 48, "message": "Alright, take care!", "isSender": true },
-    { "id": 49, "message": "You too!", "isSender": false },
-    { "id": 50, "message": "Bye!", "isSender": true }
-  ]);
+  const [messages, setMessages] = useState<Record<string, Message[]>>({
+    "2025-03-10": [
+      { id: 1, message: "Hey Olivia, are you free this afternoon?", isSender: true, replyTo: null, reactions: [{ emojie: "👍", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-10T09:00:00Z" },
+      { id: 2, message: "Yes, I’m free! Let’s meet at 2 PM.", isSender: false, replyTo: null, reactions: [{ emojie: "😊", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-10T09:05:00Z" },
+      { id: 3, message: "Sounds good! See you then.", isSender: true, replyTo: { id: 2, message: "Yes, I’m free! Let’s meet at 2 PM.", isSender: false, replyTo: null, reactions: [], date: "2025-03-10T09:05:00Z" }, reactions: [], date: "2025-03-10T09:10:00Z" },
+      { id: 4, message: "Hey Jackson, can you join us?", isSender: true, replyTo: null, reactions: [{ emojie: "🙌", user: { id: 3, name: "Emma Wilson", email: "emma@example.com", profile: "https://example.com/profiles/emma.jpg" } }], date: "2025-03-10T09:15:00Z" },
+      { id: 5, message: "Sure, I’ll be there!", isSender: false, replyTo: null, reactions: [{ emojie: "🎉", user: { id: 4, name: "Jackson Lee", email: "lee@example.com", profile: "https://example.com/profiles/jackson.jpg" } }], date: "2025-03-10T09:20:00Z" },
+      { id: 6, message: "Great, looking forward to it!", isSender: true, replyTo: null, reactions: [], date: "2025-03-10T09:25:00Z" },
+      { id: 7, message: "Me too! Should we bring anything?", isSender: false, replyTo: null, reactions: [{ emojie: "🤔", user: { id: 5, name: "William Kim", email: "will@email.com", profile: "https://example.com/profiles/william.jpg" } }], date: "2025-03-10T09:30:00Z" },
+      { id: 8, message: "Maybe some snacks?", isSender: true, replyTo: { id: 7, message: "Me too! Should we bring anything?", isSender: false, replyTo: null, reactions: [], date: "2025-03-10T09:30:00Z" }, reactions: [], date: "2025-03-10T09:35:00Z" },
+      { id: 9, message: "Good idea! I’ll bring chips.", isSender: false, replyTo: null, reactions: [{ emojie: "🍕", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-10T09:40:00Z" },
+      { id: 10, message: "I’ll bring soda.", isSender: true, replyTo: null, reactions: [], date: "2025-03-10T09:45:00Z" }
+    ],
+    "2025-03-11": [
+      { id: 11, message: "Perfect, see you all at 2!", isSender: false, replyTo: null, reactions: [{ emojie: "👌", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-11T09:50:00Z" },
+      { id: 12, message: "Can’t wait!", isSender: true, replyTo: null, reactions: [], date: "2025-03-11T09:55:00Z" },
+      { id: 13, message: "Me neither!", isSender: false, replyTo: null, reactions: [{ emojie: "😄", user: { id: 3, name: "Emma Wilson", email: "emma@example.com", profile: "https://example.com/profiles/emma.jpg" } }], date: "2025-03-11T10:00:00Z" },
+      { id: 14, message: "Let’s make it fun!", isSender: true, replyTo: null, reactions: [], date: "2025-03-11T10:05:00Z" },
+      { id: 15, message: "Definitely!", isSender: false, replyTo: null, reactions: [{ emojie: "🎈", user: { id: 4, name: "Jackson Lee", email: "lee@example.com", profile: "https://example.com/profiles/jackson.jpg" } }], date: "2025-03-11T10:10:00Z" },
+      { id: 16, message: "Any games in mind?", isSender: true, replyTo: null, reactions: [], date: "2025-03-11T10:15:00Z" },
+      { id: 17, message: "How about charades?", isSender: false, replyTo: null, reactions: [{ emojie: "🎭", user: { id: 5, name: "William Kim", email: "will@email.com", profile: "https://example.com/profiles/william.jpg" } }], date: "2025-03-11T10:20:00Z" },
+      { id: 18, message: "Love that idea!", isSender: true, replyTo: { id: 17, message: "How about charades?", isSender: false, replyTo: null, reactions: [], date: "2025-03-11T10:20:00Z" }, reactions: [], date: "2025-03-11T10:25:00Z" },
+      { id: 19, message: "I’m in!", isSender: false, replyTo: null, reactions: [{ emojie: "🙋", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-11T10:30:00Z" },
+      { id: 20, message: "Awesome, let’s do it!", isSender: true, replyTo: null, reactions: [], date: "2025-03-11T10:35:00Z" }
+    ],
+    "2025-03-12": [
+      { id: 21, message: "What time should we start?", isSender: false, replyTo: null, reactions: [{ emojie: "⏰", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-12T10:40:00Z" },
+      { id: 22, message: "Let’s start at 2:30.", isSender: true, replyTo: { id: 21, message: "What time should we start?", isSender: false, replyTo: null, reactions: [], date: "2025-03-12T10:40:00Z" }, reactions: [], date: "2025-03-12T10:45:00Z" },
+      { id: 23, message: "Works for me!", isSender: false, replyTo: null, reactions: [{ emojie: "✅", user: { id: 3, name: "Emma Wilson", email: "emma@example.com", profile: "https://example.com/profiles/emma.jpg" } }], date: "2025-03-12T10:50:00Z" },
+      { id: 24, message: "Cool, see you soon!", isSender: true, replyTo: null, reactions: [], date: "2025-03-12T10:55:00Z" },
+      { id: 25, message: "Can’t wait to hang out!", isSender: false, replyTo: null, reactions: [{ emojie: "😎", user: { id: 4, name: "Jackson Lee", email: "lee@example.com", profile: "https://example.com/profiles/jackson.jpg" } }], date: "2025-03-12T11:00:00Z" },
+      { id: 26, message: "Same here!", isSender: true, replyTo: null, reactions: [], date: "2025-03-12T11:05:00Z" },
+      { id: 27, message: "Should we invite more people?", isSender: false, replyTo: null, reactions: [{ emojie: "🤷", user: { id: 5, name: "William Kim", email: "will@email.com", profile: "https://example.com/profiles/william.jpg" } }], date: "2025-03-12T11:10:00Z" },
+      { id: 28, message: "Maybe a couple more?", isSender: true, replyTo: { id: 27, message: "Should we invite more people?", isSender: false, replyTo: null, reactions: [], date: "2025-03-12T11:10:00Z" }, reactions: [], date: "2025-03-12T11:15:00Z" },
+      { id: 29, message: "Good call, I’ll ask Sarah.", isSender: false, replyTo: null, reactions: [{ emojie: "👏", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-12T11:20:00Z" },
+      { id: 30, message: "I’ll invite John too.", isSender: true, replyTo: null, reactions: [], date: "2025-03-12T11:25:00Z" }
+    ],
+    "2025-03-13": [
+      { id: 31, message: "Great, the more the merrier!", isSender: false, replyTo: null, reactions: [{ emojie: "🎊", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-13T11:30:00Z" },
+      { id: 32, message: "Agreed!", isSender: true, replyTo: null, reactions: [], date: "2025-03-13T11:35:00Z" },
+      { id: 33, message: "Sarah said yes!", isSender: false, replyTo: null, reactions: [{ emojie: "🙂", user: { id: 3, name: "Emma Wilson", email: "emma@example.com", profile: "https://example.com/profiles/emma.jpg" } }], date: "2025-03-13T11:40:00Z" },
+      { id: 34, message: "Awesome, John is in too!", isSender: true, replyTo: null, reactions: [], date: "2025-03-13T11:45:00Z" },
+      { id: 35, message: "This is going to be fun!", isSender: false, replyTo: null, reactions: [{ emojie: "🎉", user: { id: 4, name: "Jackson Lee", email: "lee@example.com", profile: "https://example.com/profiles/jackson.jpg" } }], date: "2025-03-13T11:50:00Z" },
+      { id: 36, message: "Yes, can’t wait!", isSender: true, replyTo: null, reactions: [], date: "2025-03-13T11:55:00Z" },
+      { id: 37, message: "Any last-minute plans?", isSender: false, replyTo: null, reactions: [{ emojie: "🤔", user: { id: 5, name: "William Kim", email: "will@email.com", profile: "https://example.com/profiles/william.jpg" } }], date: "2025-03-13T12:00:00Z" },
+      { id: 38, message: "Maybe a quick game before we eat?", isSender: true, replyTo: { id: 37, message: "Any last-minute plans?", isSender: false, replyTo: null, reactions: [], date: "2025-03-13T12:00:00Z" }, reactions: [], date: "2025-03-13T12:05:00Z" },
+      { id: 39, message: "Sounds good to me!", isSender: false, replyTo: null, reactions: [{ emojie: "👍", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-13T12:10:00Z" },
+      { id: 40, message: "Let’s do it!", isSender: true, replyTo: null, reactions: [], date: "2025-03-13T12:15:00Z" }
+    ],
+    "2025-03-14": [
+      { id: 41, message: "I’ll bring a deck of cards.", isSender: false, replyTo: null, reactions: [{ emojie: "♠️", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-14T12:20:00Z" },
+      { id: 42, message: "Nice, thanks!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T12:25:00Z" },
+      { id: 43, message: "Anything else we need?", isSender: false, replyTo: null, reactions: [{ emojie: "❓", user: { id: 3, name: "Emma Wilson", email: "emma@example.com", profile: "https://example.com/profiles/emma.jpg" } }], date: "2025-03-14T12:30:00Z" },
+      { id: 44, message: "I think we’re set!", isSender: true, replyTo: { id: 43, message: "Anything else we need?", isSender: false, replyTo: null, reactions: [], date: "2025-03-14T12:30:00Z" }, reactions: [], date: "2025-03-14T12:35:00Z" },
+      { id: 45, message: "Awesome, see you at 2:30!", isSender: false, replyTo: null, reactions: [{ emojie: "👋", user: { id: 4, name: "Jackson Lee", email: "lee@example.com", profile: "https://example.com/profiles/jackson.jpg" } }], date: "2025-03-14T12:40:00Z" },
+      { id: 46, message: "See you then!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T12:45:00Z" },
+      { id: 47, message: "Looking forward to it!", isSender: false, replyTo: null, reactions: [{ emojie: "😄", user: { id: 5, name: "William Kim", email: "will@email.com", profile: "https://example.com/profiles/william.jpg" } }], date: "2025-03-14T12:50:00Z" },
+      { id: 48, message: "Me too!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T12:55:00Z" },
+      { id: 49, message: "Let’s make it a great day!", isSender: false, replyTo: null, reactions: [{ emojie: "🌟", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-14T13:00:00Z" },
+      { id: 50, message: "Absolutely!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T13:05:00Z" }
+    ]
+  });
 
   const addMessage = (message: string) => {
-    setMessages((prev) => ([
-      ...prev,
-      {
-        id: prev.length + 1,
+    let date = new Date().toISOString().split('T')[0];
+    setMessages((prev) => {
+      prev[date].push({
+        id: prev[date].length + 1,
         message,
-        isSender: true
-      }
-    ]));
+        isSender: true,
+        replyTo: null,
+        reactions: [],
+        date: new Date().toISOString()
+      })
+      return prev;
+    });
     setTypeMsg('');
   }
 
-  const chatRef = useRef(null);
+  const addReaction = (reaction: string, message: Message) => {
+    let date = new Date(message.date).toISOString().split('T')[0];
+    setMessages((prev) => {
+      prev[date].filter((msg) => msg.id === message.id)[0].reactions.push({
+        emojie: reaction,
+        user: {
+          id: Math.random(),
+          name: 'Abhinav Namdeo',
+          email: 'abhaynam22@gmail.com',
+          profile: ''
+        }
+      })
+      return prev;
+    })
+  }
+
+  const chatRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     chatRef.current?.scrollIntoView();
   }, [selectedUser, messages]);
@@ -275,10 +275,10 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     <>
       <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
         <div className="flex items-center gap-4">
-          <UserAvatar userProfileOrName={selectedUser.profile ?? selectedUser.name} size='md' />
+          <UserAvatar userProfileOrName={selectedUser.profile || selectedUser.name} size='md' />
           <div className="flex flex-col justify-center">
             <p className='text-md line-clamp-1 font-bold'>{selectedUser.name}</p>
-            <p className='text-xs'>Online</p>
+            <p className='text-xs'>online</p>
           </div>
         </div>
         <div className="flex">
@@ -293,8 +293,20 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
 
       <div className="flex flex-col px-10 gap-2 py-20 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed relative">
         <div className='absolute top-0 left-0 w-full h-full bg-black opacity-60 z-0'></div>
-        {messages.map((message) => (
-          <ChatBubble key={message.id} message={message} />
+        {Object.entries(messages).map(([date, dateMessages], index) => (
+          <div key={index}>
+            <div className="text-center text-xs my-1.5 bg-zinc-500 w-min text-nowrap py-1 px-2 rounded-md text-white mx-auto">
+              {new Date(date).toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </div>
+            {dateMessages.map((message) => (
+              <ChatBubble key={message.id} message={message} addReaction={addReaction} />
+            ))}
+          </div>
         ))}
         <div ref={chatRef}></div>
       </div>

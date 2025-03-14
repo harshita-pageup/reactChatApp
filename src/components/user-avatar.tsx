@@ -9,7 +9,7 @@ const UserAvatar = ({ userProfileOrName, size = 'sm' }: UserAvatarProps) => {
   return (
     <Avatar className={`overflow-hidden rounded-full ${sizeClass}`}>
       <AvatarImage src={userProfileOrName} />
-      <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+      <AvatarFallback className="rounded-lg bg-[#dddddd] text-[#222222] pb-0.5">
         {nameInitials}
       </AvatarFallback>
     </Avatar>

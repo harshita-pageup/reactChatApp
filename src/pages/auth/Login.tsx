@@ -14,6 +14,9 @@ import { setToken } from "@/utils/auth";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { LoginRequest } from "@/types/auth";
+import ValidationMsg from "@/components/validation-err";
+import AlertMsg from "@/components/alert-msg";
+import { Loader2 } from "lucide-react";
 
 export function Login() {
   const [loading, setLoading] = useState(false);
@@ -45,7 +48,7 @@ export function Login() {
 
         const json_data = await response.json();
 
-        if(!json_data.status) {
+        if (!json_data.status) {
           throw new Error(json_data.msg);
         }
         else {
@@ -67,6 +70,9 @@ export function Login() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
+        {error && (
+          <AlertMsg msg={error} />
+        )}
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
@@ -78,14 +84,17 @@ export function Login() {
             <CardContent>
               <form onSubmit={formik.handleSubmit}>
                 <div className="flex flex-col gap-6">
+
                   <div className="grid gap-2">
                     <Label htmlFor="username">Email</Label>
-                    <Input id="username" type="email" placeholder="m@example.com" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.username}
-                    />
-                    {formik.errors.username && formik.touched.username && (
-                      <p className="text-red-500">{formik.errors.username}</p>
-                    )}
+                    <div>
+                      <Input id="username" type="email" placeholder="m@example.com" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.username} />
+                      {formik.errors.username && formik.touched.username && (
+                        <ValidationMsg msg={formik.errors.username} />
+                      )}
+                    </div>
                   </div>
+
                   <div className="grid gap-2">
                     <div className="flex items-center">
                       <Label htmlFor="password">Password</Label>
@@ -93,27 +102,23 @@ export function Login() {
                         Forgot your password?
                       </Link>
                     </div>
-                    <Input id="password" type="password" placeholder="••••••••••" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.password}
-                    />
-                    {formik.errors.password && formik.touched.password && (
-                      <p className="text-red-500">{formik.errors.password}</p>
-                    )}
+                    <div>
+                      <Input id="password" type="password" placeholder="••••••••••" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.password} />
+                      {formik.errors.password && formik.touched.password && (
+                        <ValidationMsg msg={formik.errors.password} />
+                      )}
+                    </div>
                   </div>
 
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Logging in..." : "Login"}
+                    {loading && (<Loader2 className="animate-spin" />)}
+                    Login
                   </Button>
 
                   <Button variant="outline" className="w-full">
                     Login with Google
                   </Button>
                 </div>
-
-                {error && (
-                  <div className="mt-4 text-center text-red-500">
-                    <p>{error}</p>
-                  </div>
-                )}
 
                 <div className="mt-4 text-center text-sm">
                   Don't have an account?{" "}

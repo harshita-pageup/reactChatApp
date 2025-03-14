@@ -18,17 +18,22 @@ export interface User {
   profile: string
 }
 
-export interface ChatUser {
-  id: number
-  name: string
-  email: string
-  profile: string
+export interface ChatUser extends User {
   lastMsg: string
-  lastMsgDate: Date
+  lastMsgDate: string
+  isOnline: boolean
 }
 
 export interface Message {
   id: number
   message: string
   isSender: boolean
+  replyTo: Message | null
+  reactions: Reaction[]
+  date: string
+}
+
+export interface Reaction {
+  emojie: string
+  user: User
 }

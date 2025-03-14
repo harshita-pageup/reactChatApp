@@ -100,7 +100,7 @@ const NewMessageDialog = () => {
                 className="flex items-center justify-between p-2 hover:bg-zinc-800 rounded-md cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
-                  <UserAvatar userProfileOrName={user.profile ?? user.name} />
+                  <UserAvatar userProfileOrName={user.profile || user.name} />
                   <div>
                     <p className="text-sm font-medium">{user.name}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>

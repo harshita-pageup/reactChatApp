@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CheckCircle } from "lucide-react"
 import {
   InputOTP,
   InputOTPGroup,
@@ -21,14 +20,6 @@ export function ForgotPassword() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
-
-        <Alert variant="default" className="mb-2">
-          <CheckCircle className="h-4 w-4" />
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>
-            OTP has been sent to your given email.
-          </AlertDescription>
-        </Alert>
 
         <div className="flex flex-col gap-6">
           <Card>

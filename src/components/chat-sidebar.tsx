@@ -107,7 +107,7 @@ type UserInfoProps = { user: User }
 function UserInfo({ user }: UserInfoProps) {
   return (
     <>
-      <UserAvatar userProfileOrName={user.profile ?? user.name} />
+      <UserAvatar userProfileOrName={user.profile || user.name} />
       <div className="grid flex-1 text-left text-sm leading-tight">
         <span className="truncate font-medium">{user.name}</span>
         <span className="text-muted-foreground truncate text-xs">{user.email}</span>
@@ -120,7 +120,7 @@ type UserCardProps = { chatUser: ChatUser, isSelected: boolean }
 function UserCard({ chatUser, isSelected }: UserCardProps) {
   return (
     <button className={`flex items-start gap-2.5 rounded-lg border-2 p-3 text-left text-sm transition-all hover:bg-accent w-full ${isSelected ? 'bg-muted' : ''}`}>
-      <UserAvatar userProfileOrName={chatUser.profile ?? chatUser.name} />
+      <UserAvatar userProfileOrName={chatUser.profile || chatUser.name} />
 
       <div className="flex flex-col gap-2 w-full">
         <div className="flex w-full flex-col gap-1">
@@ -128,7 +128,7 @@ function UserCard({ chatUser, isSelected }: UserCardProps) {
             <div className="flex items-center gap-2">
               <div className="font-semibold">{chatUser.name}</div>
             </div>
-            <div className="ml-auto text-xs text-foreground">{chatUser.lastMsgDate.toLocaleDateString()}</div>
+            <div className="ml-auto text-xs text-foreground">{new Date(chatUser.lastMsgDate).toLocaleDateString()}</div>
           </div>
         </div>
         <div className="line-clamp-2 text-xs text-muted-foreground">{chatUser.lastMsg}</div>
