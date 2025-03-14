@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from 'axios';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom"; // Fixing the import of `useNavigate`
+import { Link, useNavigate } from "react-router-dom";
 import { setToken } from "@/utils/auth";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -24,7 +25,7 @@ export function Login() {
   const navigate = useNavigate();
 
   const validationSchema = Yup.object({
-    username: Yup.string().required("Username is required"),
+    username: Yup.string().email("Invalid email format").required("Username is required"),
     password: Yup.string().required("Password is required"),
   });
 
@@ -38,29 +39,15 @@ export function Login() {
       const apiUrl = import.meta.env.VITE_API_URL;
 
       try {
-        const response = await fetch(`${apiUrl}/api/standardLogin`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        });
-
-        const json_data = await response.json();
-
-        if (!json_data.status) {
-          throw new Error(json_data.msg);
-        }
-        else {
-          setToken(json_data.data.token);
+        const response = await axios.post(`${apiUrl}/api/standardLogin`,  values)
+        if (response.data.status && response.data.data.token) {
+          setToken(response.data.data.token);
           navigate("/chats");
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
         } else {
-          setError("An unknown error occurred.");
+          setError(response.data.msg);
         }
+      } catch (err: any) {
+        setError(err?.message || "An unknown error occurred.");
       } finally {
         setLoading(false);
       }
