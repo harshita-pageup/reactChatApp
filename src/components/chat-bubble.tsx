@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import UserAvatar from "./user-avatar"
+import { PopoverClose } from "@radix-ui/react-popover"
 
 type ChatBubbleProps = {
   message: Message,
@@ -73,21 +74,21 @@ function ActionButtons({ message, addReaction, setReplyMsg }: ActionButtonsProps
   return (
     <>
       <Popover>
-        <PopoverTrigger asChild className="z-10">
+        <PopoverTrigger className="z-10">
           <Button variant="ghost" size="icon" className="z-20 transition-opacity opacity-0 group-hover:opacity-100" >
             <Smile className="h-5 w-5" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="maxw">
+        <PopoverContent>
           <div className="overflow-y-auto flex flex-row gap-3">
-            <span onClick={() => addReaction('👍', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">👍</span>
-            <span onClick={() => addReaction('💓', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">💓</span>
-            <span onClick={() => addReaction('😊', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">😊</span>
-            <span onClick={() => addReaction('😂', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">😂</span>
-            <span onClick={() => addReaction('😎', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">😎</span>
-            <span onClick={() => addReaction('☹', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">☹️</span>
-            <span onClick={() => addReaction('😭', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">😭</span>
-            <span onClick={() => addReaction('🔥', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">🔥</span>
+            <PopoverClose onClick={() => addReaction('👍', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">👍</PopoverClose>
+            <PopoverClose onClick={() => addReaction('💓', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">💓</PopoverClose>
+            <PopoverClose onClick={() => addReaction('😊', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">😊</PopoverClose>
+            <PopoverClose onClick={() => addReaction('😂', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">😂</PopoverClose>
+            <PopoverClose onClick={() => addReaction('😎', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">😎</PopoverClose>
+            <PopoverClose onClick={() => addReaction('☹', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">☹️</PopoverClose>
+            <PopoverClose onClick={() => addReaction('😭', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">😭</PopoverClose>
+            <PopoverClose onClick={() => addReaction('🔥', message)} className="text-2xl cursor-pointer border border-transparent hover:border-gray-600 rounded-md">🔥</PopoverClose>
           </div>
         </PopoverContent>
       </Popover>
