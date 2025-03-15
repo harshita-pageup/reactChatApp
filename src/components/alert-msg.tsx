@@ -4,7 +4,7 @@ import { CheckCircle, XCircle } from "lucide-react"
 type AlertMsgProps = { msg: string, isSuccess?: boolean }
 const AlertMsg = ({ msg, isSuccess = false }: AlertMsgProps) => {
   return (
-    <Alert variant="default" className="mb-2">
+    <Alert className="mb-2 bg-primary text-primary-foreground">
       {isSuccess ? (
         <>
           <CheckCircle className="h-4 w-4" />
