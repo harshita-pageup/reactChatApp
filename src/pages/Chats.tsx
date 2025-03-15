@@ -176,7 +176,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   const [messages, setMessages] = useState<Record<string, Message[]>>({
     "2025-03-10": [
       { id: 1, message: "Hey Olivia, are you free this afternoon?", isSender: true, replyTo: null, reactions: [{ emojie: "👍", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-10T09:00:00Z" },
-      { id: 2, message: "Yes, I’m free! Let’s meet at 2 PM.", isSender: false, replyTo: null, reactions: [{ emojie: "😊", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-10T09:05:00Z" },
+      { id: 2, message: "Yes, I’m free! Let’s meet at 2 PM.", isSender: false, replyTo: { id: 2, message: "Yes, I’m free! Let’s meet at 2 PM.", isSender: false, replyTo: null, reactions: [], date: "2025-03-10T09:05:00Z" }, reactions: [{ emojie: "😊", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-10T09:05:00Z" },
       { id: 3, message: "Sounds good! See you then.", isSender: true, replyTo: { id: 2, message: "Yes, I’m free! Let’s meet at 2 PM.", isSender: false, replyTo: null, reactions: [], date: "2025-03-10T09:05:00Z" }, reactions: [], date: "2025-03-10T09:10:00Z" },
       { id: 4, message: "Hey Jackson, can you join us?", isSender: true, replyTo: null, reactions: [{ emojie: "🙌", user: { id: 3, name: "Emma Wilson", email: "emma@example.com", profile: "https://example.com/profiles/emma.jpg" } }], date: "2025-03-10T09:15:00Z" },
       { id: 5, message: "Sure, I’ll be there!", isSender: false, replyTo: null, reactions: [{ emojie: "🎉", user: { id: 4, name: "Jackson Lee", email: "lee@example.com", profile: "https://example.com/profiles/jackson.jpg" } }], date: "2025-03-10T09:20:00Z" },
@@ -231,26 +231,35 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
       { id: 46, message: "See you then!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T12:45:00Z" },
       { id: 47, message: "Looking forward to it!", isSender: false, replyTo: null, reactions: [{ emojie: "😄", user: { id: 5, name: "William Kim", email: "will@email.com", profile: "https://example.com/profiles/william.jpg" } }], date: "2025-03-14T12:50:00Z" },
       { id: 48, message: "Me too!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T12:55:00Z" },
-      { id: 49, message: "Let’s make it a great day!", isSender: false, replyTo: null, reactions: [{ emojie: "🌟", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-14T13:00:00Z" },
+      { id: 49, message: "Let’s make it a great day!", isSender: false, replyTo: { id: 2, message: "Yes, I’m free! Let’s meet at 2 PM.", isSender: false, replyTo: null, reactions: [], date: "2025-03-10T09:05:00Z" }, reactions: [{ emojie: "🌟", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-14T13:00:00Z" },
       { id: 50, message: "Absolutely!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T13:05:00Z" }
     ]
   });
 
   const addMessage = (message: string) => {
+    if (!message.trim()) return; // Prevent empty messages
     let date = new Date().toISOString().split('T')[0];
     setMessages((prev) => {
-      prev[date].push({
-        id: prev[date].length + 1,
-        message,
-        isSender: true,
-        replyTo: replyMsg,
-        reactions: [],
-        date: new Date().toISOString()
-      })
-      return prev;
+      const updatedMessages = { ...prev };
+      if (!updatedMessages[date]) {
+        updatedMessages[date] = [];
+      }
+      updatedMessages[date] = [
+        ...updatedMessages[date],
+        {
+          id: Math.random(),
+          message,
+          isSender: true,
+          replyTo: replyMsg,
+          reactions: [],
+          date: new Date().toISOString(),
+        },
+      ];
+      return updatedMessages;
     });
     setTypeMsg('');
-  }
+    setReplyMsg(null); // Optional: Clear reply after sending
+  };
 
   const addReaction = (reaction: string, message: Message) => {
     let date = new Date(message.date).toISOString().split('T')[0];
@@ -306,30 +315,37 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   useEffect(() => {
     chatRef.current?.scrollIntoView();
   }, [selectedUser, messages]);
+
+  const handleSendMessage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault(); // Prevent form submission or key event bubbling
+    if (typeMsg.trim()) {
+      addMessage(typeMsg);
+    }
+  };
   return (
     <>
       <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
         <div className="flex items-center gap-4">
-          <UserAvatar userProfileOrName={selectedUser.profile || selectedUser.name} size='md' />
+          <UserAvatar userProfileOrName={selectedUser.profile || selectedUser.name} size="md" />
           <div className="flex flex-col justify-center">
-            <p className='text-md line-clamp-1 font-bold'>{selectedUser.name}</p>
-            <p className='text-xs'>online</p>
+            <p className="text-md line-clamp-1 font-bold">{selectedUser.name}</p>
+            <p className="text-xs">online</p>
           </div>
         </div>
         <div className="flex">
-          <Button variant='outline' size='icon'>
+          <Button variant="outline" size="icon">
             <Phone />
           </Button>
-          <Button variant='outline' size='icon'>
+          <Button variant="outline" size="icon">
             <Video />
           </Button>
         </div>
       </div>
 
       <div className="flex flex-col px-10 gap-2 py-20 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed relative">
-        <div className='absolute top-0 left-0 w-full h-full bg-black opacity-60 z-0'></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60 z-0"></div>
         {Object.entries(messages).map(([date, dateMessages], index) => (
-          <div key={index}>
+          <div key={index} className='flex flex-col gap-2'>
             <div className="text-center text-xs my-1.5 bg-zinc-500 w-min text-nowrap py-1 px-2 rounded-md text-white mx-auto">
               {new Date(date).toLocaleDateString("en-US", {
                 weekday: "long",
@@ -339,7 +355,12 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
               })}
             </div>
             {dateMessages.map((message) => (
-              <ChatBubble key={message.id} message={message} addReaction={addReaction} setReplyMsg={setReplyMsg} />
+              <ChatBubble
+                key={message.id}
+                message={message}
+                addReaction={addReaction}
+                setReplyMsg={setReplyMsg}
+              />
             ))}
           </div>
         ))}
@@ -349,37 +370,49 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
       <div className="fixed bottom-0 right-0 w-[calc(100%-20rem)] z-20 bg-sidebar">
         {replyMsg && (
           <div className="flex justify-center items-end px-4 h-12 pt-1.5 gap-2">
-            <Button variant='outline' size='icon' onClick={() => setReplyMsg(null)}><X /></Button>
+            <Button variant="outline" size="icon" onClick={() => setReplyMsg(null)}>
+              <X />
+            </Button>
             <div className="w-full flex justify-start items-center gap-2 bg-accent h-full rounded-md px-2 py-1">
               <div className="w-1 rounded-md bg-primary h-full my-2"></div>
               <div className="flex flex-col">
-                <h4 className='text-sm leading-4 font-bold'>{replyMsg.isSender ? 'You' : selectedUser.name}</h4>
-                <p className='text-xs'>{replyMsg.message}</p>
+                <h4 className="text-sm leading-4 font-bold">
+                  {replyMsg.isSender ? "You" : selectedUser.name}
+                </h4>
+                <p className="text-xs">{replyMsg.message}</p>
               </div>
             </div>
           </div>
         )}
-        <div className='flex justify-center items-center px-4 h-14'>
-          <Button variant='outline' size='icon'>
+        <form
+          onSubmit={handleSendMessage}
+          className="flex justify-center items-center px-4 h-14"
+        >
+          <Button variant="outline" size="icon">
             <Paperclip />
           </Button>
-          <Button variant='outline' size='icon'>
+          <Button variant="outline" size="icon">
             <SmilePlus />
           </Button>
-
-          <Input placeholder='Type a message...' className='mx-2' value={typeMsg} onChange={(e) => setTypeMsg(e.target.value)} onKeyDown={e => {
-            if (e.key === 'Enter') {
-              addMessage(typeMsg);
-            }
-          }} />
-
-          <Button disabled={!typeMsg} size='icon' onClick={() => addMessage(typeMsg)}>
+          <Input
+            placeholder="Type a message..."
+            className="mx-2"
+            value={typeMsg}
+            onChange={(e) => setTypeMsg(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) { // Allow Shift+Enter for new lines
+                e.preventDefault(); // Prevent default Enter behavior
+                handleSendMessage();
+              }
+            }}
+          />
+          <Button type="submit" disabled={!typeMsg} size="icon">
             <SendHorizonal />
           </Button>
-        </div>
+        </form>
       </div>
     </>
-  )
+  );
 }
 
 function NotSelectedScreen() {

@@ -16,11 +16,22 @@ type ChatBubbleProps = {
 const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
   if (message.isSender) {
     return (
-      <div className="group flex flex-row items-start gap-1">
+      <div className={`group flex flex-row items-start gap-1 ${message.reactions.length > 0 ? 'mb-4' : ''}`}>
         <div className="ml-auto"></div>
         <ActionButtons message={message} addReaction={addReaction} setReplyMsg={setReplyMsg} />
 
         <div className="flex w-max max-w-[75%] flex-col gap-1 rounded-lg pl-3 pr-12 py-2 text-sm bg-primary text-primary-foreground z-10 relative">
+          {message.replyTo && (
+            <div className="w-full flex justify-start items-center gap-2 bg-accent text-primary h-full rounded-md px-2 py-1">
+              <div className="w-1 rounded-md bg-primary h-5"></div>
+              <div className="flex flex-col">
+                <h4 className="text-sm leading-4 font-bold">
+                  {"You"}
+                </h4>
+                <p className="text-xs">{message.replyTo.message}</p>
+              </div>
+            </div>
+          )}
           <p>{message.message}</p>
           <ChatTimestamp date={message.date} />
           {message.reactions.length > 0 && (<DisplayReactions reactions={message.reactions} isSender={message.isSender} />)}
@@ -29,8 +40,19 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
     )
   } else {
     return (
-      <div className="group flex flex-row items-start gap-1">
+      <div className={`group flex flex-row items-start gap-1 ${message.reactions.length > 0 ? 'mb-4' : ''}`}>
         <div className="flex w-max max-w-[75%] flex-col gap-2 rounded-lg pl-3 pr-12 py-2 text-sm bg-muted z-10 relative">
+          {message.replyTo && (
+            <div className="w-full flex justify-start items-center gap-2 bg-primary text-accent h-full rounded-md px-2 py-1">
+              <div className="w-1 rounded-md bg-accent h-5"></div>
+              <div className="flex flex-col">
+                <h4 className="text-sm leading-4 font-bold">
+                  {"You"}
+                </h4>
+                <p className="text-xs">{message.replyTo.message}</p>
+              </div>
+            </div>
+          )}
           <p>{message.message}</p>
           <ChatTimestamp date={message.date} />
           {message.reactions.length > 0 && (<DisplayReactions reactions={message.reactions} isSender={message.isSender} />)}
