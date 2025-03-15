@@ -81,10 +81,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
           }
 
           updatedMessages[messageDate].push({
-            ...message,
-            isSender: true,
-            replyTo: replyMsg,
-            reactions: [],
+            ...message
           });
         });
         setMessages(updatedMessages);
