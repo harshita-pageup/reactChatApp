@@ -1,5 +1,4 @@
 import { useState } from "react";
-import axios from 'axios';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +17,7 @@ import { LoginRequest } from "@/types/auth";
 import ValidationMsg from "@/components/validation-err";
 import AlertMsg from "@/components/alert-msg";
 import { Loader2 } from "lucide-react";
+import axiosInstance from "@/api/axiosInstance";
 
 export function Login() {
   const [loading, setLoading] = useState(false);
@@ -36,10 +36,8 @@ export function Login() {
       setLoading(true);
       setError("");
 
-      const apiUrl = import.meta.env.VITE_API_URL;
-
       try {
-        const response = await axios.post(`${apiUrl}/api/standardLogin`,  values)
+        const response = await axiosInstance.post(`/api/standardLogin`, values);
         if (response.data.status && response.data.data.token) {
           setToken(response.data.data.token);
           navigate("/chats");
@@ -97,14 +95,16 @@ export function Login() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && (<Loader2 className="animate-spin" />)}
-                    Login
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading && (<Loader2 className="animate-spin" />)}
+                      Login
+                    </Button>
 
-                  <Button variant="outline" className="w-full">
-                    Login with Google
-                  </Button>
+                    <Button variant="outline" className="w-full">
+                      Login with Google
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="mt-4 text-center text-sm">

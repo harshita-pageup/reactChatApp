@@ -17,6 +17,7 @@ import { SignupRequest } from "@/types/auth"
 import AlertMsg from "@/components/alert-msg"
 import ValidationMsg from "@/components/validation-err"
 import { Loader2 } from "lucide-react"
+import axiosInstance from "@/api/axiosInstance"
 
 export function Signup() {
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,13 @@ export function Signup() {
     name: Yup.string().required("Name is required"),
     email: Yup.string().max(150).email("Invalid email address").required("Email is required"),
     contact: Yup.string().required("Contact number is required"),
-    password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+    password: Yup.string()
+                  .min(6, "Password must be at least 6 characters")
+                  .matches(/[a-z]/, "Password must contain at least one lowercase letter")
+                  .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+                  .matches(/[0-9]/, "Password must contain at least one number")
+                  .matches(/[@$!%*?&]/, "Password must contain at least one special character")
+                  .required("Password is required"),
     confirmPassword: Yup.string()
       .oneOf([Yup.ref('password')], "Passwords must match")
       .required("Confirm Password is required"),
@@ -40,32 +47,16 @@ export function Signup() {
       setLoading(true);
       setError("");
 
-      const apiUrl = import.meta.env.VITE_API_URL;
-
       try {
-        const response = await fetch(`${apiUrl}/api/registerUser`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        });
-
-        const json_data = await response.json();
-
-        if (!json_data.status) {
-          throw new Error(json_data.msg);
-        }
-        else {
-          setToken(json_data.data.token);
+        const response = await axiosInstance.post(`/api/registerUser`, values);
+        if (response.data.status && response.data.data.token) {
+          setToken(response.data.data.token);
           navigate("/chats");
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
         } else {
-          setError("An unknown error occurred.");
+          setError(response.data.msg);
         }
+      } catch (err: any) {
+        setError(err?.message || "An unknown error occurred.");
       } finally {
         setLoading(false);
       }

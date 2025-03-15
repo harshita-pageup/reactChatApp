@@ -10,12 +10,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ChevronsUpDown, Edit, LogOut, MenuSquareIcon, Palette, User2 } from "lucide-react"
+import { ChevronsUpDown, Loader2, LogOut, MenuSquareIcon, Palette, User2 } from "lucide-react"
 import { ChatUser, User } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import UserAvatar from "./user-avatar";
 import NewMessageDialog from "./new-message-dialog";
+import { removeToken } from "@/utils/auth";
+import { useState } from "react";
+import { useNavigate } from "react-router";
 
 type ChatSidebarProps = {
   chatUsers: ChatUser[],
@@ -62,6 +65,21 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser }: ChatSi
 }
 
 function ProfileDropDown() {
+
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setLoading(true);
+    
+    removeToken();
+
+    setTimeout(() => {
+      setLoading(false);
+      navigate("/");
+    }, 1000);
+  };
+
   const user = {
     id: 1,
     name: 'Abhinav Namdeo',
@@ -95,8 +113,10 @@ function ProfileDropDown() {
           <Palette /> Theme
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <LogOut /> Logout
+        <DropdownMenuItem onClick={handleLogout}>
+          <LogOut /> 
+          {loading && (<Loader2 className="animate-spin" />)}
+          Logout
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
