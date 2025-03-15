@@ -1,3 +1,4 @@
+import axiosInstance from '@/api/axiosInstance';
 import ChatBubble from '@/components/chat-bubble';
 import { ChatSidebar } from '@/components/chat-sidebar'
 import { Button } from '@/components/ui/button';
@@ -10,134 +11,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const Chats = () => {
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
-  const [chatUsers, setChatUsers] = useState<ChatUser[]>([
-    {
-      id: 2,
-      name: 'Harshita Shrivastava',
-      email: 'harshita@gmail.com',
-      lastMsg: 'Hii, can we meet now?',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: true,
-      profile: ''
-    },
-    {
-      id: 3,
-      name: 'Amit Yadav',
-      email: 'amit@gmail.com',
-      lastMsg: 'Hello, how are you?',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: true,
-      profile: 'https://ui-avatars.com/api/Amit Yadav'
-    },
-    {
-      id: 4,
-      name: 'Priya Sharma',
-      email: 'priya@gmail.com',
-      lastMsg: 'What are you doing?',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Priya Sharma'
-    },
-    {
-      id: 5,
-      name: 'Rohan Verma',
-      email: 'rohan@gmail.com',
-      lastMsg: 'I am fine, thanks!',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Rohan Verma'
-    },
-    {
-      id: 6,
-      name: 'Sneha Patel',
-      email: 'sneha@gmail.com',
-      lastMsg: 'See you soon!',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Sneha Patel'
-    },
-    {
-      id: 7,
-      name: 'Vikram Singh',
-      email: 'vikram@gmail.com',
-      lastMsg: 'Good morning!',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Vikram Singh'
-    },
-    {
-      id: 8,
-      name: 'Ananya Gupta',
-      email: 'ananya@gmail.com',
-      lastMsg: 'Have a great day!',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Ananya Gupta'
-    },
-    {
-      id: 9,
-      name: 'Kunal Kapoor',
-      email: 'kunal@gmail.com',
-      lastMsg: 'How was your day?',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: true,
-      profile: 'https://ui-avatars.com/api/Kunal Kapoor'
-    },
-    {
-      id: 10,
-      name: 'Neha Choudhary',
-      email: 'neha@gmail.com',
-      lastMsg: 'I am going to the market.',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Neha Choudhary'
-    },
-    {
-      id: 11,
-      name: 'Rajesh Kumar',
-      email: 'rajesh@gmail.com',
-      lastMsg: 'Call me when you are free.',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Rajesh Kumar'
-    },
-    {
-      id: 12,
-      name: 'Shweta Mishra',
-      email: 'shweta@gmail.com',
-      lastMsg: 'I will be there in 10 minutes.',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Shweta Mishra'
-    },
-    {
-      id: 13,
-      name: 'Gaurav Sharma',
-      email: 'gaurav@gmail.com',
-      lastMsg: 'Let\'s plan something for the weekend.',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Gaurav Sharma'
-    },
-    {
-      id: 14,
-      name: 'Divya Singh',
-      email: 'divya@gmail.com',
-      lastMsg: 'I am waiting for your reply.',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: false,
-      profile: 'https://ui-avatars.com/api/Divya Singh'
-    },
-    {
-      id: 15,
-      name: 'Manish Verma',
-      email: 'manish@gmail.com',
-      lastMsg: 'Can you help me with this?',
-      lastMsgDate: '2025-03-19T08:40:00Z',
-      isOnline: true,
-      profile: 'https://ui-avatars.com/api/Manish Verma'
-    },
-  ]);
+  const [chatUsers, setChatUsers] = useState<ChatUser[]>([]);
 
   const escFunction = useCallback((event: KeyboardEvent) => {
     if (event.key === "Escape") {
@@ -151,6 +25,20 @@ const Chats = () => {
       document.removeEventListener("keydown", escFunction, false);
     };
   }, [escFunction]);
+
+  // Fetch chat users from the API
+  useEffect(() => {
+    const fetchChatUsers = async () => {
+      try {
+        const response = await axiosInstance.post(`/api/users`, {page:1, perPage:15});
+        const data = response.data.data.data;
+        setChatUsers(data);
+      } catch (error) {
+        console.error('Error fetching chat users:', error);
+      }
+    };
+    fetchChatUsers();
+  }, []);
 
   return (
     <SidebarProvider>
@@ -173,6 +61,8 @@ type ChatScreenProps = {
 function ChatScreen({ selectedUser }: ChatScreenProps) {
   const [typeMsg, setTypeMsg] = useState<string>('');
   const [replyMsg, setReplyMsg] = useState<Message | null>(null);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const [messages, setMessages] = useState<Record<string, Message[]>>({
     "2025-03-10": [
       { id: 1, message: "Hey Olivia, are you free this afternoon?", isSender: true, replyTo: null, reactions: [{ emojie: "👍", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-10T09:00:00Z" },
@@ -197,68 +87,46 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
       { id: 18, message: "Love that idea!", isSender: true, replyTo: { id: 17, message: "How about charades?", isSender: false, replyTo: null, reactions: [], date: "2025-03-11T10:20:00Z" }, reactions: [], date: "2025-03-11T10:25:00Z" },
       { id: 19, message: "I’m in!", isSender: false, replyTo: null, reactions: [{ emojie: "🙋", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-11T10:30:00Z" },
       { id: 20, message: "Awesome, let’s do it!", isSender: true, replyTo: null, reactions: [], date: "2025-03-11T10:35:00Z" }
-    ],
-    "2025-03-12": [
-      { id: 21, message: "What time should we start?", isSender: false, replyTo: null, reactions: [{ emojie: "⏰", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-12T10:40:00Z" },
-      { id: 22, message: "Let’s start at 2:30.", isSender: true, replyTo: { id: 21, message: "What time should we start?", isSender: false, replyTo: null, reactions: [], date: "2025-03-12T10:40:00Z" }, reactions: [], date: "2025-03-12T10:45:00Z" },
-      { id: 23, message: "Works for me!", isSender: false, replyTo: null, reactions: [{ emojie: "✅", user: { id: 3, name: "Emma Wilson", email: "emma@example.com", profile: "https://example.com/profiles/emma.jpg" } }], date: "2025-03-12T10:50:00Z" },
-      { id: 24, message: "Cool, see you soon!", isSender: true, replyTo: null, reactions: [], date: "2025-03-12T10:55:00Z" },
-      { id: 25, message: "Can’t wait to hang out!", isSender: false, replyTo: null, reactions: [{ emojie: "😎", user: { id: 4, name: "Jackson Lee", email: "lee@example.com", profile: "https://example.com/profiles/jackson.jpg" } }], date: "2025-03-12T11:00:00Z" },
-      { id: 26, message: "Same here!", isSender: true, replyTo: null, reactions: [], date: "2025-03-12T11:05:00Z" },
-      { id: 27, message: "Should we invite more people?", isSender: false, replyTo: null, reactions: [{ emojie: "🤷", user: { id: 5, name: "William Kim", email: "will@email.com", profile: "https://example.com/profiles/william.jpg" } }], date: "2025-03-12T11:10:00Z" },
-      { id: 28, message: "Maybe a couple more?", isSender: true, replyTo: { id: 27, message: "Should we invite more people?", isSender: false, replyTo: null, reactions: [], date: "2025-03-12T11:10:00Z" }, reactions: [], date: "2025-03-12T11:15:00Z" },
-      { id: 29, message: "Good call, I’ll ask Sarah.", isSender: false, replyTo: null, reactions: [{ emojie: "👏", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-12T11:20:00Z" },
-      { id: 30, message: "I’ll invite John too.", isSender: true, replyTo: null, reactions: [], date: "2025-03-12T11:25:00Z" }
-    ],
-    "2025-03-13": [
-      { id: 31, message: "Great, the more the merrier!", isSender: false, replyTo: null, reactions: [{ emojie: "🎊", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-13T11:30:00Z" },
-      { id: 32, message: "Agreed!", isSender: true, replyTo: null, reactions: [], date: "2025-03-13T11:35:00Z" },
-      { id: 33, message: "Sarah said yes!", isSender: false, replyTo: null, reactions: [{ emojie: "🙂", user: { id: 3, name: "Emma Wilson", email: "emma@example.com", profile: "https://example.com/profiles/emma.jpg" } }], date: "2025-03-13T11:40:00Z" },
-      { id: 34, message: "Awesome, John is in too!", isSender: true, replyTo: null, reactions: [], date: "2025-03-13T11:45:00Z" },
-      { id: 35, message: "This is going to be fun!", isSender: false, replyTo: null, reactions: [{ emojie: "🎉", user: { id: 4, name: "Jackson Lee", email: "lee@example.com", profile: "https://example.com/profiles/jackson.jpg" } }], date: "2025-03-13T11:50:00Z" },
-      { id: 36, message: "Yes, can’t wait!", isSender: true, replyTo: null, reactions: [], date: "2025-03-13T11:55:00Z" },
-      { id: 37, message: "Any last-minute plans?", isSender: false, replyTo: null, reactions: [{ emojie: "🤔", user: { id: 5, name: "William Kim", email: "will@email.com", profile: "https://example.com/profiles/william.jpg" } }], date: "2025-03-13T12:00:00Z" },
-      { id: 38, message: "Maybe a quick game before we eat?", isSender: true, replyTo: { id: 37, message: "Any last-minute plans?", isSender: false, replyTo: null, reactions: [], date: "2025-03-13T12:00:00Z" }, reactions: [], date: "2025-03-13T12:05:00Z" },
-      { id: 39, message: "Sounds good to me!", isSender: false, replyTo: null, reactions: [{ emojie: "👍", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-13T12:10:00Z" },
-      { id: 40, message: "Let’s do it!", isSender: true, replyTo: null, reactions: [], date: "2025-03-13T12:15:00Z" }
-    ],
-    "2025-03-14": [
-      { id: 41, message: "I’ll bring a deck of cards.", isSender: false, replyTo: null, reactions: [{ emojie: "♠️", user: { id: 1, name: "Olivia Martin", email: "m@example.com", profile: "https://example.com/profiles/olivia.jpg" } }], date: "2025-03-14T12:20:00Z" },
-      { id: 42, message: "Nice, thanks!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T12:25:00Z" },
-      { id: 43, message: "Anything else we need?", isSender: false, replyTo: null, reactions: [{ emojie: "❓", user: { id: 3, name: "Emma Wilson", email: "emma@example.com", profile: "https://example.com/profiles/emma.jpg" } }], date: "2025-03-14T12:30:00Z" },
-      { id: 44, message: "I think we’re set!", isSender: true, replyTo: { id: 43, message: "Anything else we need?", isSender: false, replyTo: null, reactions: [], date: "2025-03-14T12:30:00Z" }, reactions: [], date: "2025-03-14T12:35:00Z" },
-      { id: 45, message: "Awesome, see you at 2:30!", isSender: false, replyTo: null, reactions: [{ emojie: "👋", user: { id: 4, name: "Jackson Lee", email: "lee@example.com", profile: "https://example.com/profiles/jackson.jpg" } }], date: "2025-03-14T12:40:00Z" },
-      { id: 46, message: "See you then!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T12:45:00Z" },
-      { id: 47, message: "Looking forward to it!", isSender: false, replyTo: null, reactions: [{ emojie: "😄", user: { id: 5, name: "William Kim", email: "will@email.com", profile: "https://example.com/profiles/william.jpg" } }], date: "2025-03-14T12:50:00Z" },
-      { id: 48, message: "Me too!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T12:55:00Z" },
-      { id: 49, message: "Let’s make it a great day!", isSender: false, replyTo: { id: 2, message: "Yes, I’m free! Let’s meet at 2 PM.", isSender: false, replyTo: null, reactions: [], date: "2025-03-10T09:05:00Z" }, reactions: [{ emojie: "🌟", user: { id: 2, name: "Isabella Nguyen", email: "isabella.nguyen@email.com", profile: "https://example.com/profiles/isabella.jpg" } }], date: "2025-03-14T13:00:00Z" },
-      { id: 50, message: "Absolutely!", isSender: true, replyTo: null, reactions: [], date: "2025-03-14T13:05:00Z" }
     ]
   });
 
-  const addMessage = (message: string) => {
+  const addMessage = async (message: string, receiverId: number) => {
     if (!message.trim()) return; // Prevent empty messages
     let date = new Date().toISOString().split('T')[0];
-    setMessages((prev) => {
-      const updatedMessages = { ...prev };
-      if (!updatedMessages[date]) {
-        updatedMessages[date] = [];
+
+    try {
+      const response = await axiosInstance.post(`/api/sendMessage`, {message, receiverId});
+      if (response.data.status) {
+        setMessages((prev) => {
+          const updatedMessages = { ...prev };
+          if (!updatedMessages[date]) {
+            updatedMessages[date] = [];
+          }
+          updatedMessages[date] = [
+            ...updatedMessages[date],
+            {
+              id: Math.random(),
+              message,
+              isSender: true,
+              replyTo: replyMsg,
+              reactions: [],
+              date: new Date().toISOString(),
+            },
+          ];
+          return updatedMessages;
+        });
+        
+        setTypeMsg('');
+        setReplyMsg(null);
+      } 
+      else {
+        setError(response.data.msg);
       }
-      updatedMessages[date] = [
-        ...updatedMessages[date],
-        {
-          id: Math.random(),
-          message,
-          isSender: true,
-          replyTo: replyMsg,
-          reactions: [],
-          date: new Date().toISOString(),
-        },
-      ];
-      return updatedMessages;
-    });
-    setTypeMsg('');
-    setReplyMsg(null); // Optional: Clear reply after sending
+    } catch (err: any) {
+      setError(err?.message || "An unknown error occurred.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addReaction = (reaction: string, message: Message) => {
@@ -319,7 +187,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault(); // Prevent form submission or key event bubbling
     if (typeMsg.trim()) {
-      addMessage(typeMsg);
+      addMessage(typeMsg, selectedUser.id);
     }
   };
   return (
