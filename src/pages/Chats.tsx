@@ -126,8 +126,12 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
           updatedMessages[date] = [
             ...updatedMessages[date],
             {
-              id: Math.random(),
+              id: response.data.data.message.id,
               message,
+              senderId: response.data.data.message.senderId,
+              receiverId: response.data.data.message.receiverId,
+              sender: response.data.data.message.sender,
+              receiver: response.data.data.message.receiver,
               isSender: true,
               replyTo: replyMsg,
               reactions: [],
@@ -153,12 +157,11 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     console.log('Entered into ChatScreen::addReaction');
     try {
       let date = new Date(message.date).toISOString().split('T')[0];
-      let currentUser = user
 
       try {
         const response = await axiosInstance.post('/api/storeReaction', {
           messageId: message.id,
-          userId: currentUser.id,
+          userId: user!.id,
           reaction: reaction
         });
         if (response.data.status) {
@@ -168,7 +171,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
 
             if (messageToUpdate) {
               const existingReactionIndex = messageToUpdate.reactions.findIndex(
-                (r) => r.user.email === currentUser.email
+                (r) => r.user.email === user!.email
               );
 
               if (existingReactionIndex !== -1) {
@@ -186,10 +189,11 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
                   {
                     emojie: reaction,
                     user: {
-                      id: currentUser.id,
-                      name: currentUser.name,
-                      email: currentUser.email,
-                      profile: currentUser.profile || '',
+                      id: user!.id,
+                      name: user!.name,
+                      email: user!.email,
+                      profile: user!.profile || '',
+                      isOnline: false
                     },
                   },
                 ];
@@ -288,7 +292,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
                 <h4 className="text-sm leading-4 font-bold">
                   {replyMsg.isSender ? "You" : selectedUser.name}
                 </h4>
-                <p className="text-xs">{replyMsg.message}</p>
+                <p className="text-xs line-clamp-1">{replyMsg.message}</p>
               </div>
             </div>
           </div>

@@ -1,12 +1,6 @@
 import axiosInstance from "@/api/axiosInstance";
+import { User } from "@/types/auth";
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    profile: string;
-}
 
 interface UserContextType {
     user: User | null;

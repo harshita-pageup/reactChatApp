@@ -141,10 +141,10 @@ function UserInfo({ user }: UserInfoProps) {
 type UserCardProps = { chatUser: ChatUser, isSelected: boolean }
 function UserCard({ chatUser, isSelected }: UserCardProps) {
   return (
-    <button className={`flex items-start gap-2.5 rounded-lg border-2 p-3 text-left text-sm transition-all hover:bg-accent w-full ${isSelected ? 'bg-muted' : ''}`}>
+    <button className={`flex items-center gap-2.5 rounded-lg border-2 p-3 text-left text-sm transition-all hover:bg-accent w-full ${isSelected ? 'bg-muted' : ''}`}>
       <UserAvatar userProfileOrName={chatUser.profile || chatUser.name} />
 
-      <div className="flex flex-col gap-2 w-full">
+      <div className="flex flex-col w-full">
         <div className="flex w-full flex-col gap-1">
           <div className="flex items-center">
             <div className="flex items-center gap-2">
@@ -153,7 +153,7 @@ function UserCard({ chatUser, isSelected }: UserCardProps) {
             <div className="ml-auto text-xs text-foreground">{new Date(chatUser.lastMsgDate).toLocaleDateString()}</div>
           </div>
         </div>
-        <div className="line-clamp-2 text-xs text-muted-foreground">{chatUser.lastMsg}</div>
+        <div className="line-clamp-1 text-xs text-muted-foreground">{chatUser.lastMsg}</div>
       </div>
     </button>
   );

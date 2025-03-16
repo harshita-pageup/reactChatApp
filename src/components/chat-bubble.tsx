@@ -25,13 +25,13 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
 
         <div className="flex w-max max-w-[75%] flex-col gap-1 rounded-lg pl-3 pr-12 py-2 text-sm bg-primary text-primary-foreground z-10 relative">
           {message.replyTo && (
-            <div className="w-full flex justify-start items-center gap-2 bg-accent text-primary h-full rounded-md px-2 py-1">
+            <div className="w-full flex justify-start items-center gap-2 bg-accent text-primary h-full rounded-md pl-2 pr-4 py-1">
               <div className="w-1 rounded-md bg-primary h-5"></div>
               <div className="flex flex-col">
                 <h4 className="text-sm leading-4 font-bold">
-                {message.replyTo?.senderId==user.id ? "You" : message.replyTo?.sender?.name}
+                  {message.replyTo.senderId === user!.id ? "You" : message.replyTo.sender.name}
                 </h4>
-                <p className="text-xs">{message.replyTo.message}</p>
+                <p className="text-xs line-clamp-1">{message.replyTo.message}</p>
               </div>
             </div>
           )}
@@ -50,9 +50,9 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
               <div className="w-1 rounded-md bg-accent h-5"></div>
               <div className="flex flex-col">
                 <h4 className="text-sm leading-4 font-bold">
-                  {message.replyTo?.senderId==user.id ? "You" : message.replyTo?.sender?.name}
+                  {message.replyTo.senderId == user!.id ? "You" : message.replyTo.sender.name}
                 </h4>
-                <p className="text-xs">{message.replyTo.message}</p>
+                <p className="text-xs line-clamp-1">{message.replyTo.message}</p>
               </div>
             </div>
           )}

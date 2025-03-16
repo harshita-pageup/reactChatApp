@@ -26,6 +26,10 @@ export interface ChatUser extends User {
 export interface Message {
   id: number
   message: string
+  senderId: number
+  receiverId: number
+  sender: User
+  receiver: User
   isSender: boolean
   replyTo: Message | null
   reactions: Reaction[]
