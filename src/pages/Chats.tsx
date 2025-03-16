@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarProvider } from '@/components/ui/sidebar'
 import UserAvatar from '@/components/user-avatar';
+import { useUser } from '@/context/UserContext';
 import { ChatUser, Message } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -146,56 +147,65 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     }
   }
 
-  const addReaction = (reaction: string, message: Message) => {
+  const { user } = useUser();
+  const addReaction = async (reaction: string, message: Message) => {
     console.log('Entered into ChatScreen::addReaction');
     try {
       let date = new Date(message.date).toISOString().split('T')[0];
-      let currentUser = {
-        id: 1,
-        name: 'Abhinav Namdeo',
-        email: 'abhaynam22@gmail.com',
-        profile: ''
-      }
-      setMessages((prev) => {
-        const updatedMessages = { ...prev };
-        const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === message.id);
+      let currentUser = user
 
-        if (messageToUpdate) {
-          const existingReactionIndex = messageToUpdate.reactions.findIndex(
-            (r) => r.user.email === currentUser.email // Or use r.user.id === currentUser.id
-          );
+      try {
+        const response = await axiosInstance.post('/api/storeReaction', {
+          messageId: message.id,
+          userId: currentUser.id,
+          reaction: reaction
+        });
+        if (response.data.status) {
+          setMessages((prev) => {
+            const updatedMessages = { ...prev };
+            const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === message.id);
 
-          if (existingReactionIndex !== -1) {
-            messageToUpdate.reactions = [
-              ...messageToUpdate.reactions.slice(0, existingReactionIndex),
-              {
-                ...messageToUpdate.reactions[existingReactionIndex],
-                emojie: reaction,
-              },
-              ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
-            ];
-          } else {
-            messageToUpdate.reactions = [
-              ...messageToUpdate.reactions,
-              {
-                emojie: reaction,
-                user: {
-                  id: currentUser.id,
-                  name: currentUser.name,
-                  email: currentUser.email,
-                  profile: currentUser.profile || '',
-                },
-              },
-            ];
-          }
+            if (messageToUpdate) {
+              const existingReactionIndex = messageToUpdate.reactions.findIndex(
+                (r) => r.user.email === currentUser.email
+              );
 
-          updatedMessages[date] = updatedMessages[date].map((msg) =>
-            msg.id === message.id ? { ...msg } : msg
-          );
+              if (existingReactionIndex !== -1) {
+                messageToUpdate.reactions = [
+                  ...messageToUpdate.reactions.slice(0, existingReactionIndex),
+                  {
+                    ...messageToUpdate.reactions[existingReactionIndex],
+                    emojie: reaction,
+                  },
+                  ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
+                ];
+              } else {
+                messageToUpdate.reactions = [
+                  ...messageToUpdate.reactions,
+                  {
+                    emojie: reaction,
+                    user: {
+                      id: currentUser.id,
+                      name: currentUser.name,
+                      email: currentUser.email,
+                      profile: currentUser.profile || '',
+                    },
+                  },
+                ];
+              }
+
+              updatedMessages[date] = updatedMessages[date].map((msg) =>
+                msg.id === message.id ? { ...msg } : msg
+              );
+            }
+
+            return updatedMessages;
+          })
         }
+      } catch (error) {
+        console.log('Error in addReaction API call ->', error);
+      }
 
-        return updatedMessages;
-      })
     } catch (error) {
       console.log('Error in ChatScreen::addReaction ->', error);
     } finally {
