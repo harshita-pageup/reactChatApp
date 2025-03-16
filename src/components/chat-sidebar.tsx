@@ -19,6 +19,7 @@ import NewMessageDialog from "./new-message-dialog";
 import { removeToken } from "@/utils/auth";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useUser } from "@/context/UserContext";
 
 type ChatSidebarProps = {
   chatUsers: ChatUser[],
@@ -66,6 +67,7 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser }: ChatSi
 
 function ProfileDropDown() {
 
+  const { user, setUser } = useUser();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -73,18 +75,16 @@ function ProfileDropDown() {
     setLoading(true);
     
     removeToken();
-
+    localStorage.removeItem("user");
     setTimeout(() => {
+      setUser(null);
       setLoading(false);
       navigate("/");
     }, 1000);
   };
 
-  const user = {
-    id: 1,
-    name: 'Abhinav Namdeo',
-    email: 'abhaynam22@gmail.com',
-    profile: 'https://ui-avatars.com/api/Abhinav Namdeo'
+  if (!user) {
+    return null;
   }
 
   return (

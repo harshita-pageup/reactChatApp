@@ -7,7 +7,7 @@ export const setToken = (token: string): void => {
   };
   
   export const removeToken = (): void => {
-    localStorage.removeItem("authToken");
+    localStorage.clear();
   };
   
   export const isAuthenticated = (): boolean => {

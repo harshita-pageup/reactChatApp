@@ -7,6 +7,7 @@ import { Signup } from './pages/auth/Signup'
 import { ForgotPassword } from './pages/auth/ForgotPassword'
 import Chats from './pages/Chats'
 import { isAuthenticated } from './utils/auth'
+import { UserProvider } from './context/UserContext'
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   return isAuthenticated() ? children : <Navigate to="/" />;
@@ -25,6 +26,8 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <UserProvider>
+      <RouterProvider router={router} />
+    </UserProvider>
   </StrictMode>
 )

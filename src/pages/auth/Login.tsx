@@ -18,11 +18,13 @@ import ValidationMsg from "@/components/validation-err";
 import AlertMsg from "@/components/alert-msg";
 import { Loader2 } from "lucide-react";
 import axiosInstance from "@/api/axiosInstance";
+import { useUser } from "@/context/UserContext";
 
 export function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { user,setUser } = useUser();
 
   const validationSchema = Yup.object({
     username: Yup.string().email("Invalid email format").required("Username is required"),
@@ -40,6 +42,14 @@ export function Login() {
         const response = await axiosInstance.post(`/api/standardLogin`, values);
         if (response.data.status && response.data.data.token) {
           setToken(response.data.data.token);
+          const userData = {
+            id: response.data.data.user_info.id,
+            name: response.data.data.user_info.name,
+            email: response.data.data.user_info.email,
+            profile: "https://ui-avatars.com/api/"+response.data.data.user_info.name
+          }
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData));
           navigate("/chats");
         } else {
           setError(response.data.msg);
