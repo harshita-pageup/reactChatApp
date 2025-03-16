@@ -74,7 +74,7 @@ function ActionButtons({ message, addReaction, setReplyMsg }: ActionButtonsProps
   return (
     <>
       <Popover>
-        <PopoverTrigger className="z-10">
+        <PopoverTrigger className="z-10" asChild>
           <Button variant="ghost" size="icon" className="z-20 transition-opacity opacity-0 group-hover:opacity-100" >
             <Smile className="h-5 w-5" />
           </Button>
