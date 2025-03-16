@@ -18,16 +18,17 @@ import AlertMsg from "@/components/alert-msg"
 import ValidationMsg from "@/components/validation-err"
 import { Loader2 } from "lucide-react"
 import axiosInstance from "@/api/axiosInstance"
+import { useUser } from "@/context/UserContext"
 
 export function Signup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { setUser } = useUser();
   const navigate = useNavigate();
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Name is required"),
     email: Yup.string().max(150).email("Invalid email address").required("Email is required"),
-    contact: Yup.string().required("Contact number is required"),
     password: Yup.string()
       .min(6, "Password must be at least 6 characters")
       .matches(/[a-z]/, "Password must contain at least one lowercase letter")
@@ -41,7 +42,7 @@ export function Signup() {
   });
 
   const formik = useFormik<SignupRequest>({
-    initialValues: { name: "", email: "", contact: "", password: "", confirmPassword: "" },
+    initialValues: { name: "", email: "", password: "", confirmPassword: "" },
     validationSchema,
     onSubmit: async (values) => {
       setLoading(true);
@@ -52,6 +53,7 @@ export function Signup() {
         const response = await axiosInstance.post(`/api/registerUser`, values);
         if (response.data.status && response.data.data.token) {
           setToken(response.data.data.token);
+          setUser(response.data.data.user_info);
           navigate("/chats");
         } else {
           setError(response.data.msg);
@@ -99,16 +101,6 @@ export function Signup() {
                       <Input id="email" type="email" placeholder="m@example.com" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.email} />
                       {formik.errors.email && formik.touched.email && (
                         <ValidationMsg msg={formik.errors.email} />
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="contact">Contact</Label>
-                    <div>
-                      <Input id="contact" type="tel" placeholder="8989898989" onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.contact} />
-                      {formik.errors.contact && formik.touched.contact && (
-                        <ValidationMsg msg={formik.errors.contact} />
                       )}
                     </div>
                   </div>

@@ -1,7 +1,6 @@
 export interface SignupRequest {
   name: string
   email: string
-  contact: string
   password: string
   confirmPassword: string
 }
@@ -16,12 +15,12 @@ export interface User {
   name: string
   email: string
   profile: string
+  isOnline: boolean
 }
 
 export interface ChatUser extends User {
   lastMsg: string
   lastMsgDate: string
-  isOnline: boolean
 }
 
 export interface Message {
