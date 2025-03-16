@@ -80,7 +80,6 @@ function ProfileDropDown() {
   const handleLogout = () => {
     setLoading(true);
     removeToken();
-    console.log("logout")
     setTimeout(() => {
       setLoading(false);
       navigate("/");

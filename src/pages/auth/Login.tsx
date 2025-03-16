@@ -24,7 +24,7 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { user,setUser } = useUser();
+  const { user, setUser } = useUser();
 
   const validationSchema = Yup.object({
     username: Yup.string().email("Invalid email format").required("Username is required"),
@@ -39,6 +39,7 @@ export function Login() {
       setError("");
 
       try {
+        console.log('Entered into Login::onSubmit');
         const response = await axiosInstance.post(`/api/standardLogin`, values);
         if (response.data.status && response.data.data.token) {
           setToken(response.data.data.token);
@@ -46,17 +47,18 @@ export function Login() {
             id: response.data.data.user_info.id,
             name: response.data.data.user_info.name,
             email: response.data.data.user_info.email,
-            profile: "https://ui-avatars.com/api/"+response.data.data.user_info.name
+            profile: "https://ui-avatars.com/api/" + response.data.data.user_info.name
           }
           setUser(userData);
-          localStorage.setItem("user", JSON.stringify(userData));
           navigate("/chats");
         } else {
           setError(response.data.msg);
         }
-      } catch (err: any) {
-        setError(err?.message || "An unknown error occurred.");
+      } catch (error: any) {
+        console.log('Error in Login::onSubmit ->', error);
+        setError(error?.message || "An unknown error occurred.");
       } finally {
+        console.log('Exited from Login::onSubmit');
         setLoading(false);
       }
     },

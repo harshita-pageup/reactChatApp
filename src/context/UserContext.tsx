@@ -1,3 +1,4 @@
+import axiosInstance from "@/api/axiosInstance";
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 interface User {
@@ -25,12 +26,9 @@ export const useUser = () => {
 export const UserProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        console.log("test1")
-        console.log(storedUser)
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
+        axiosInstance.get('/api/authUser').then(res => {
+            setUser(res.data.data.user);
+        });
     }, []);
 
     return (

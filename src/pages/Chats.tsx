@@ -16,6 +16,7 @@ const Chats = () => {
 
   const fetchChatUsers = async () => {
     setFetchListLoading(true);
+    console.log('Entered into Chats::fetchChatUsers');
     try {
       const response = await axiosInstance.post(`/api/users`, { page: 1, perPage: 15 });
       const data = response.data.data.data;
@@ -49,7 +50,7 @@ const Chats = () => {
     <SidebarProvider>
       <ChatSidebar chatUsers={chatUsers} selectedUser={selectedUser} setSelectedUser={setSelectedUser} isLoading={fetchListLoading} />
 
-      <div className="h-screen w-[calc(100%-20rem)]">
+      <div className="min-h-screen w-[calc(100%-20rem)]">
         {selectedUser ? (
           <ChatScreen selectedUser={selectedUser} />
         ) : (
@@ -74,6 +75,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
 
   const fetchMessages = async (userId: number) => {
     setFetchMsgLoading(true);
+    console.log('Entered into ChatScreen::fetchMessages');
     try {
       const response = await axiosInstance.post(`/api/getMessages`, { receiverId: userId });
 
@@ -99,7 +101,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
       console.log('Exited from ChatScreen::fetchMessages');
       setFetchMsgLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
     if (selectedUser) {
@@ -108,11 +110,10 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   }, [selectedUser]);
 
   const addMessage = async (message: string, receiverId: number) => {
-    if (!message.trim()) return;
-
-    setSendMsgLoading(true);
-    let date = new Date().toISOString().split('T')[0];
+    console.log('Entered into ChatScreen::addMessage');
     try {
+      setSendMsgLoading(true);
+      let date = new Date().toISOString().split('T')[0];
       const response = await axiosInstance.post(`/api/sendMessage`, { message, receiverId });
       if (response.data.status) {
         setMessages((prev) => {
@@ -143,56 +144,63 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
       console.log('Exited from ChatScreen::addMessage');
       setSendMsgLoading(false);
     }
-  };
+  }
 
   const addReaction = (reaction: string, message: Message) => {
-    let date = new Date(message.date).toISOString().split('T')[0];
-    let currentUser = {
-      id: 1,
-      name: 'Abhinav Namdeo',
-      email: 'abhaynam22@gmail.com',
-      profile: ''
-    }
-    setMessages((prev) => {
-      const updatedMessages = { ...prev };
-      const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === message.id);
+    console.log('Entered into ChatScreen::addReaction');
+    try {
+      let date = new Date(message.date).toISOString().split('T')[0];
+      let currentUser = {
+        id: 1,
+        name: 'Abhinav Namdeo',
+        email: 'abhaynam22@gmail.com',
+        profile: ''
+      }
+      setMessages((prev) => {
+        const updatedMessages = { ...prev };
+        const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === message.id);
 
-      if (messageToUpdate) {
-        const existingReactionIndex = messageToUpdate.reactions.findIndex(
-          (r) => r.user.email === currentUser.email // Or use r.user.id === currentUser.id
-        );
+        if (messageToUpdate) {
+          const existingReactionIndex = messageToUpdate.reactions.findIndex(
+            (r) => r.user.email === currentUser.email // Or use r.user.id === currentUser.id
+          );
 
-        if (existingReactionIndex !== -1) {
-          messageToUpdate.reactions = [
-            ...messageToUpdate.reactions.slice(0, existingReactionIndex),
-            {
-              ...messageToUpdate.reactions[existingReactionIndex],
-              emojie: reaction,
-            },
-            ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
-          ];
-        } else {
-          messageToUpdate.reactions = [
-            ...messageToUpdate.reactions,
-            {
-              emojie: reaction,
-              user: {
-                id: currentUser.id,
-                name: currentUser.name,
-                email: currentUser.email,
-                profile: currentUser.profile || '',
+          if (existingReactionIndex !== -1) {
+            messageToUpdate.reactions = [
+              ...messageToUpdate.reactions.slice(0, existingReactionIndex),
+              {
+                ...messageToUpdate.reactions[existingReactionIndex],
+                emojie: reaction,
               },
-            },
-          ];
+              ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
+            ];
+          } else {
+            messageToUpdate.reactions = [
+              ...messageToUpdate.reactions,
+              {
+                emojie: reaction,
+                user: {
+                  id: currentUser.id,
+                  name: currentUser.name,
+                  email: currentUser.email,
+                  profile: currentUser.profile || '',
+                },
+              },
+            ];
+          }
+
+          updatedMessages[date] = updatedMessages[date].map((msg) =>
+            msg.id === message.id ? { ...msg } : msg
+          );
         }
 
-        updatedMessages[date] = updatedMessages[date].map((msg) =>
-          msg.id === message.id ? { ...msg } : msg
-        );
-      }
-
-      return updatedMessages;
-    })
+        return updatedMessages;
+      })
+    } catch (error) {
+      console.log('Error in ChatScreen::addReaction ->', error);
+    } finally {
+      console.log('Exited from ChatScreen::addReaction');
+    }
   }
 
   const chatRef = useRef<HTMLDivElement>(null);
@@ -296,7 +304,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
               }
             }}
           />
-          <Button type="submit" disabled={!typeMsg} size="icon">
+          <Button type="submit" disabled={!typeMsg.trim()} size="icon">
             {sendMsgLoading ? (
               <Loader2 className='animate-spin' />
             ) : (
