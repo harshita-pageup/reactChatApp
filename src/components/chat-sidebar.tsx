@@ -25,8 +25,9 @@ type ChatSidebarProps = {
   chatUsers: ChatUser[],
   selectedUser: ChatUser | null,
   setSelectedUser: (user: ChatUser) => void,
+  isLoading: boolean
 }
-export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser }: ChatSidebarProps) {
+export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoading }: ChatSidebarProps) {
   const { state } = useSidebar();
 
   return (
@@ -47,7 +48,12 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser }: ChatSi
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {chatUsers.map(item => (
+            {isLoading && (
+              <SidebarMenuItem className="flex justify-center">
+                <Loader2 className="w-10 h-10 animate-spin" />
+              </SidebarMenuItem>
+            )}
+            {!isLoading && chatUsers.map(item => (
               <SidebarMenuItem key={item.id} onClick={() => setSelectedUser(item)}>
                 <SidebarMenuButton asChild>
                   <UserCard chatUser={item} isSelected={item.id === selectedUser?.id} />
@@ -67,17 +73,15 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser }: ChatSi
 
 function ProfileDropDown() {
 
-  const { user, setUser } = useUser();
+  const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
     setLoading(true);
-    
     removeToken();
-    localStorage.removeItem("user");
+    console.log("logout")
     setTimeout(() => {
-      setUser(null);
       setLoading(false);
       navigate("/");
     }, 1000);
@@ -114,8 +118,7 @@ function ProfileDropDown() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
-          <LogOut /> 
-          {loading && (<Loader2 className="animate-spin" />)}
+          {loading ? (<Loader2 className="animate-spin" />) : (<LogOut />)}
           Logout
         </DropdownMenuItem>
       </DropdownMenuContent>

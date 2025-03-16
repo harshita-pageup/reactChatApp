@@ -6,12 +6,27 @@ import { Input } from '@/components/ui/input';
 import { SidebarProvider } from '@/components/ui/sidebar'
 import UserAvatar from '@/components/user-avatar';
 import { ChatUser, Message } from '@/types/auth';
-import { Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
+import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const Chats = () => {
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
   const [chatUsers, setChatUsers] = useState<ChatUser[]>([]);
+  const [fetchListLoading, setFetchListLoading] = useState<boolean>(true);
+
+  const fetchChatUsers = async () => {
+    setFetchListLoading(true);
+    try {
+      const response = await axiosInstance.post(`/api/users`, { page: 1, perPage: 15 });
+      const data = response.data.data.data;
+      setChatUsers(data);
+    } catch (error) {
+      console.log('Error in Chats::fetchChatUsers ->', error);
+    } finally {
+      setFetchListLoading(false);
+      console.log('Exited from Chats::fetchChatUsers');
+    }
+  };
 
   const escFunction = useCallback((event: KeyboardEvent) => {
     if (event.key === "Escape") {
@@ -26,23 +41,13 @@ const Chats = () => {
     };
   }, [escFunction]);
 
-  // Fetch chat users from the API
   useEffect(() => {
-    const fetchChatUsers = async () => {
-      try {
-        const response = await axiosInstance.post(`/api/users`, { page: 1, perPage: 15 });
-        const data = response.data.data.data;
-        setChatUsers(data);
-      } catch (error) {
-        console.error('Error fetching chat users:', error);
-      }
-    };
     fetchChatUsers();
   }, []);
 
   return (
     <SidebarProvider>
-      <ChatSidebar chatUsers={chatUsers} selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
+      <ChatSidebar chatUsers={chatUsers} selectedUser={selectedUser} setSelectedUser={setSelectedUser} isLoading={fetchListLoading} />
 
       <div className="h-screen w-[calc(100%-20rem)]">
         {selectedUser ? (
@@ -62,14 +67,16 @@ type ChatScreenProps = {
 function ChatScreen({ selectedUser }: ChatScreenProps) {
   const [typeMsg, setTypeMsg] = useState<string>('');
   const [replyMsg, setReplyMsg] = useState<Message | null>(null);
-  const [error, setError] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
 
-  // Fetch messages for selected user
+  const [fetchMsgLoading, setFetchMsgLoading] = useState<boolean>(false);
+  const [sendMsgLoading, setSendMsgLoading] = useState<boolean>(false);
+
   const fetchMessages = async (userId: number) => {
+    setFetchMsgLoading(true);
     try {
       const response = await axiosInstance.post(`/api/getMessages`, { receiverId: userId });
+
       if (response.data.status) {
         const messagesData = response.data.data;
 
@@ -85,11 +92,12 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
           });
         });
         setMessages(updatedMessages);
-      } else {
-        console.error(response.data.msg);
       }
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.log('Error in ChatScreen::fetchMessages ->', error);
+    } finally {
+      console.log('Exited from ChatScreen::fetchMessages');
+      setFetchMsgLoading(false);
     }
   };
 
@@ -100,7 +108,9 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   }, [selectedUser]);
 
   const addMessage = async (message: string, receiverId: number) => {
-    if (!message.trim()) return; // Prevent empty messages
+    if (!message.trim()) return;
+
+    setSendMsgLoading(true);
     let date = new Date().toISOString().split('T')[0];
     try {
       const response = await axiosInstance.post(`/api/sendMessage`, { message, receiverId });
@@ -127,13 +137,11 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
         setTypeMsg('');
         setReplyMsg(null);
       }
-      else {
-        setError(response.data.msg);
-      }
-    } catch (err: any) {
-      setError(err?.message || "An unknown error occurred.");
+    } catch (error: any) {
+      console.log('Errors in ChatScreen::addMessage ->', error);
     } finally {
-      setLoading(false);
+      console.log('Exited from ChatScreen::addMessage');
+      setSendMsgLoading(false);
     }
   };
 
@@ -204,7 +212,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
         <div className="flex items-center gap-4">
           <UserAvatar userProfileOrName={selectedUser.profile || selectedUser.name} size="md" />
           <div className="flex flex-col justify-center">
-            <p className="text-md line-clamp-1 font-bold">{selectedUser.name}</p>
+            <p className="text-md line-clamp-1 font-bold transition-all">{selectedUser.name}</p>
             <p className="text-xs">online</p>
           </div>
         </div>
@@ -218,9 +226,15 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
         </div>
       </div>
 
-      <div className="flex flex-col px-10 gap-2 py-20 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed relative">
+      <div className="flex flex-col px-10 gap-2 py-20 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed h-full relative">
         <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60 z-0"></div>
-        {Object.entries(messages).map(([date, dateMessages], index) => (
+        {fetchMsgLoading && (
+          <div className="flex flex-col justify-center items-center h-full gap-2">
+            <Loader2 className="h-12 w-12 animate-spin" />
+            <p className='text-primary'>Loading the messages...</p>
+          </div>
+        )}
+        {!fetchMsgLoading && Object.entries(messages).map(([date, dateMessages], index) => (
           <div key={index} className='flex flex-col gap-2'>
             <div className="text-center text-xs my-1.5 bg-zinc-500 w-min text-nowrap py-1 px-2 rounded-md text-white mx-auto">
               {new Date(date).toLocaleDateString("en-US", {
@@ -283,7 +297,11 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
             }}
           />
           <Button type="submit" disabled={!typeMsg} size="icon">
-            <SendHorizonal />
+            {sendMsgLoading ? (
+              <Loader2 className='animate-spin' />
+            ) : (
+              <SendHorizonal />
+            )}
           </Button>
         </form>
       </div>
