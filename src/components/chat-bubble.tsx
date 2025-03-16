@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/popover"
 import UserAvatar from "./user-avatar"
 import { PopoverClose } from "@radix-ui/react-popover"
+import { useUser } from "@/context/UserContext"
 
 type ChatBubbleProps = {
   message: Message,
@@ -15,6 +16,7 @@ type ChatBubbleProps = {
   setReplyMsg: (msg: Message) => void
 }
 const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
+  const { user } = useUser();
   if (message.isSender) {
     return (
       <div className={`group flex flex-row items-start gap-1 ${message.reactions.length > 0 ? 'mb-4' : ''}`}>
@@ -27,7 +29,7 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
               <div className="w-1 rounded-md bg-primary h-5"></div>
               <div className="flex flex-col">
                 <h4 className="text-sm leading-4 font-bold">
-                  {"You"}
+                {message.replyTo?.senderId==user.id ? "You" : message.replyTo?.sender?.name}
                 </h4>
                 <p className="text-xs">{message.replyTo.message}</p>
               </div>
@@ -48,7 +50,7 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
               <div className="w-1 rounded-md bg-accent h-5"></div>
               <div className="flex flex-col">
                 <h4 className="text-sm leading-4 font-bold">
-                  {"You"}
+                  {message.replyTo?.senderId==user.id ? "You" : message.replyTo?.sender?.name}
                 </h4>
                 <p className="text-xs">{message.replyTo.message}</p>
               </div>

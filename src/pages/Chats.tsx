@@ -115,7 +115,8 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     try {
       setSendMsgLoading(true);
       let date = new Date().toISOString().split('T')[0];
-      const response = await axiosInstance.post(`/api/sendMessage`, { message, receiverId });
+      let replyMsgId = replyMsg?.id
+      const response = await axiosInstance.post(`/api/sendMessage`, { message, receiverId, replyMsgId });
       if (response.data.status) {
         setMessages((prev) => {
           const updatedMessages = { ...prev };
