@@ -7,69 +7,48 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "./ui/input"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { User } from "@/types/auth"
 import UserAvatar from "./user-avatar"
 import { Edit } from "lucide-react"
 
+const fetchUsers = async () => {
+  try {
+    const response = await fetch('/api/users');
+    if (!response.ok) {
+      throw new Error('Failed to fetch users');
+    }
+    const data = await response.json();
+    return data.users;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
 
 const NewMessageDialog = () => {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: 1,
-      name: 'Abhinav Namdeo',
-      email: 'abhaynam22@gmail.com',
-      profile: 'https://ui-avatars.com/api/Abhinav Namdeo'
-    },
-    {
-      id: 2,
-      name: 'Harshita Shrivastava',
-      email: 'harshita@gmail.com',
-      profile: 'https://ui-avatars.com/api/Harshita Shrivastava'
-    },
-    {
-      id: 3,
-      name: 'Amit Yadav',
-      email: 'amit@gmail.com',
-      profile: 'https://ui-avatars.com/api/Amit Yadav'
-    },
-    {
-      id: 4,
-      name: 'Priya Sharma',
-      email: 'priya@gmail.com',
-      profile: 'https://ui-avatars.com/api/Priya Sharma'
-    },
-    {
-      id: 5,
-      name: 'Rohan Verma',
-      email: 'rohan@gmail.com',
-      profile: 'https://ui-avatars.com/api/Rohan Verma'
-    },
-    {
-      id: 6,
-      name: 'Sneha Patel',
-      email: 'sneha@gmail.com',
-      profile: 'https://ui-avatars.com/api/Sneha Patel'
-    },
-    {
-      id: 7,
-      name: 'Vikram Singh',
-      email: 'vikram@gmail.com',
-      profile: 'https://ui-avatars.com/api/Vikram Singh'
-    },
-    {
-      id: 8,
-      name: 'Ananya Gupta',
-      email: 'ananya@gmail.com',
-      profile: 'https://ui-avatars.com/api/Ananya Gupta'
-    },
-    {
-      id: 9,
-      name: 'Kunal Kapoor',
-      email: 'kunal@gmail.com',
-      profile: 'https://ui-avatars.com/api/Kunal Kapoor'
-    },
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      const usersData = await fetchUsers();
+      setUsers(usersData);
+      setFilteredUsers(usersData);
+    };
+    loadUsers();
+  }, []);
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      setSearchTerm(value);
+      const filtered = users.filter(user => 
+        user.name.toLowerCase().includes(value.toLowerCase()) || 
+        user.email.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    };
 
   return (
     <Dialog>
@@ -91,12 +70,14 @@ const NewMessageDialog = () => {
               type="text"
               placeholder="Search user..."
               className="w-full"
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
           </div>
           <div className="space-y-2 max-h-60 overflow-y-auto">
-            {users.map((user, index) => (
+            {filteredUsers.map((user) => (
               <div
-                key={index}
+                key={user.id}
                 className="flex items-center justify-between p-2 hover:bg-zinc-800 rounded-md cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
