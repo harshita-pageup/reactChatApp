@@ -11,15 +11,12 @@ import { useEffect, useState } from "react"
 import { User } from "@/types/auth"
 import UserAvatar from "./user-avatar"
 import { Edit } from "lucide-react"
+import axiosInstance from "@/api/axiosInstance"
 
 const fetchUsers = async () => {
   try {
-    const response = await fetch('/api/users');
-    if (!response.ok) {
-      throw new Error('Failed to fetch users');
-    }
-    const data = await response.json();
-    return data.users;
+    const response = await axiosInstance.post(`/api/allUsers`, { page: 1, perPage: 15 });
+    return response.data.data.data;
   } catch (error) {
     console.error(error);
     return [];

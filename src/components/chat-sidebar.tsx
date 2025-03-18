@@ -27,8 +27,15 @@ type ChatSidebarProps = {
   setSelectedUser: (user: ChatUser) => void,
   isLoading: boolean
 }
+
 export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoading }: ChatSidebarProps) {
   const { state } = useSidebar();
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Filter chat users based on the search query
+  const filteredUsers = chatUsers.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <Sidebar>
@@ -42,7 +49,13 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
             </Button>
           </div>
         </div>
-        <Input type="text" placeholder="Search" className="rounded-full" />
+        <Input
+          type="text"
+          placeholder="Search"
+          className="rounded-full"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </SidebarHeader>
 
       <SidebarContent>
@@ -53,7 +66,12 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
                 <Loader2 className="w-10 h-10 animate-spin" />
               </SidebarMenuItem>
             )}
-            {!isLoading && chatUsers.map(item => (
+            {!isLoading && filteredUsers.length === 0 && (
+              <SidebarMenuItem className="flex justify-center">
+                <p className="text-muted">No users found</p>
+              </SidebarMenuItem>
+            )}
+            {!isLoading && filteredUsers.map((item) => (
               <SidebarMenuItem key={item.id} onClick={() => setSelectedUser(item)}>
                 <SidebarMenuButton asChild>
                   <UserCard chatUser={item} isSelected={item.id === selectedUser?.id} />
@@ -68,7 +86,7 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
         <ProfileDropDown />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
 
 function ProfileDropDown() {

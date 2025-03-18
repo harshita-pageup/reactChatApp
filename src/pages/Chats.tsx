@@ -9,7 +9,6 @@ import { useUser } from '@/context/UserContext';
 import { ChatUser, Message } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Pusher from 'pusher-js';
 
 const Chats = () => {
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
@@ -154,28 +153,6 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   }
 
   const { user } = useUser();
-  useEffect(() => {
-    // Initialize Pusher with your app credentials
-    Pusher.logToConsole = true; // Optional for debugging
-    const pusher = new Pusher('b40d7f58ef8b5d968079', {
-      cluster: 'ap2',
-    });
-
-    // Subscribe to the private channel
-    const channel = pusher.subscribe(`chat.${user.id}.${selectedUser.id}`);
-
-    // Listen for the message event
-    channel.bind('message.sent', function (data) {
-      // Update the messages when a new message is received
-      setMessages((prevMessages) => [...prevMessages, data.message]);
-    });
-
-    // Cleanup on component unmount
-    return () => {
-      pusher.unsubscribe(`chat.${user.id}.${selectedUser.id}`);
-    };
-  }, [selectedUser, user]);
-
   const addReaction = async (reaction: string, message: Message) => {
     console.log('Entered into ChatScreen::addReaction');
     try {
@@ -252,7 +229,6 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
       addMessage(typeMsg, selectedUser.id);
     }
   };
-  
   return (
     <>
       <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
