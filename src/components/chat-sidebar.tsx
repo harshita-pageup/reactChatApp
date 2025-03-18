@@ -109,7 +109,7 @@ function ProfileDropDown() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/profile')}>
           <User2 /> Profile
         </DropdownMenuItem>
         <DropdownMenuItem>

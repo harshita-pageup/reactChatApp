@@ -8,6 +8,7 @@ import { ForgotPassword } from './pages/auth/ForgotPassword'
 import Chats from './pages/Chats'
 import { isAuthenticated } from './utils/auth'
 import { UserProvider } from './context/UserContext'
+import Profile from './pages/Profile'
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   return isAuthenticated() ? children : <Navigate to="/" />;
@@ -20,6 +21,7 @@ const router = createBrowserRouter(
       <Route path="/signup" element={isAuthenticated() ? <Navigate to="/chats" /> : <Signup />} />
       <Route path="/forgot-password" element={isAuthenticated() ? <Navigate to="/chats" /> : <ForgotPassword />} />
       <Route path="/chats" element={<ProtectedRoute><Chats /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
     </>
   )
 )
