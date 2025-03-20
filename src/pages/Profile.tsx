@@ -2,10 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from '@/components/ui/sidebar'
 import { Camera, LockIcon, SkipBack, User2, UserX2 } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
+import axiosInstance from '@/api/axiosInstance';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -68,12 +69,29 @@ const Profile = () => {
 }
 
 function ProfileComponent() {
-  const [profileImage, setProfileImage] = useState("https://ui-avatars.com/api/?background=222&color=fff&name=HS");
+  const [profileImage, setProfileImage] = useState<string>('');
+  const [name, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [crop, setCrop] = useState<any>();
   const [completedCrop, setCompletedCrop] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axiosInstance.get(`/api/authUser`);
+        setProfileImage(response.data.data.profile || 'https://ui-avatars.com/api/?background=222&color=fff&name=HS');
+        setName(response.data.data.name);
+        setEmail(response.data.data.email);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -138,13 +156,27 @@ function ProfileComponent() {
     }
   };
 
+  const handleSubmit = async () => {
+    const updatedProfile = {
+      name,
+      email,
+      profileImage
+    };
+    
+    try {
+      await axiosInstance.post(`/api/updateProfile`, updatedProfile);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
+
   return (
     <div className='flex flex-col gap-4 min-w-lg'>
       <h1 className='text-4xl font-bold mb-5'>Profile</h1>
       <div className='relative w-max'>
         <img src={profileImage} className='w-42 h-42 rounded-full object-cover' />
-        <Button 
-          size="icon" 
+        <Button
+          size="icon"
           className='absolute -bottom-0 -right-0 rounded-full'
           onClick={handleImageClick}
         >
@@ -186,13 +218,13 @@ function ProfileComponent() {
 
       <div className='flex flex-col gap-2'>
         <label htmlFor="name">Name</label>
-        <Input id='name' placeholder='Name' className='w-full' value="Harshita Shrivastava" />
+        <Input id='name' placeholder='Name' className='w-full' value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div className='flex flex-col gap-2'>
         <label htmlFor="email">Email</label>
-        <Input id='email' placeholder='Email' className='w-full' value="harshita@gmail.com" />
+        <Input id='email' placeholder='Email' className='w-full' value={email} onChange={(e) => setEmail(e.target.value)} />
       </div>
-      <Button className='w-min mt-2'>Submit</Button>
+      <Button className='w-min mt-2' onClick={handleSubmit}>Submit</Button>
     </div>
   )
 }
@@ -219,6 +251,22 @@ function ChangePasswordComponent() {
 }
 
 function DeleteAccountComponent() {
+  const handleDeleteAccount = async () => {
+    try {
+      const response = await axiosInstance.delete('/api/deleteAccount');
+      if (response.data.success) {
+        alert("Account deleted successfully");
+        // Redirect to login page or home
+        navigate('/');
+      } else {
+        alert(response.data.message || "Error deleting account");
+      }
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      alert("Error deleting account");
+    }
+  };
+
   return (
     <div className='flex flex-col gap-4 max-w-xl'>
       <h1 className='text-4xl font-bold mb-5'>Delete Account</h1>
