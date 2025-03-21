@@ -251,12 +251,12 @@ function ChangePasswordComponent() {
 }
 
 function DeleteAccountComponent() {
+  const navigate = useNavigate();
   const handleDeleteAccount = async () => {
     try {
       const response = await axiosInstance.delete('/api/deleteAccount');
       if (response.data.success) {
         alert("Account deleted successfully");
-        // Redirect to login page or home
         navigate('/');
       } else {
         alert(response.data.message || "Error deleting account");
@@ -273,7 +273,7 @@ function DeleteAccountComponent() {
       <p>Once your account is deleted, all of its resources and data will be permanently deleted.
         Before deleting your account, please download any data or information that you wish to
         retain.</p>
-      <Button variant='destructive' className='w-min mt-2'>Delete Account</Button>
+      <Button variant='destructive' className='w-min mt-2' onClick={handleDeleteAccount}>Delete Account</Button>
     </div>
   )
 }
