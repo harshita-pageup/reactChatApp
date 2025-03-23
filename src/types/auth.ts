@@ -40,3 +40,9 @@ export interface Reaction {
   emojie: string
   user: User
 }
+
+export interface ChangePasswordRequest {
+  currentPassword:string
+  newPassword: string
+  confirmPassword: string
+}

@@ -1,12 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from '@/components/ui/sidebar'
-import { Camera, LockIcon, SkipBack, User2, UserX2 } from 'lucide-react'
+import { Camera, Loader2, LockIcon, SkipBack, User2, UserX2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import axiosInstance from '@/api/axiosInstance';
+import { removeToken } from '@/utils/auth';
+import * as Yup from "yup";
+import AlertMsg from '@/components/alert-msg';
+import { useFormik } from 'formik';
+import { ChangePasswordRequest } from '@/types/auth';
+import ValidationMsg from '@/components/validation-err';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -69,7 +75,7 @@ const Profile = () => {
 }
 
 function ProfileComponent() {
-  const [profileImage, setProfileImage] = useState<string>('');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
@@ -162,7 +168,7 @@ function ProfileComponent() {
       email,
       profileImage
     };
-    
+
     try {
       await axiosInstance.post(`/api/updateProfile`, updatedProfile);
     } catch (error) {
@@ -174,7 +180,7 @@ function ProfileComponent() {
     <div className='flex flex-col gap-4 min-w-lg'>
       <h1 className='text-4xl font-bold mb-5'>Profile</h1>
       <div className='relative w-max'>
-        <img src={profileImage} className='w-42 h-42 rounded-full object-cover' />
+        <img src={profileImage || 'https://ui-avatars.com/api/?background=222&color=fff&name=HS'} className='w-42 h-42 rounded-full object-cover' />
         <Button
           size="icon"
           className='absolute -bottom-0 -right-0 rounded-full'
@@ -230,22 +236,88 @@ function ProfileComponent() {
 }
 
 function ChangePasswordComponent() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState(false);
+
+  const validationSchema = Yup.object({
+    currentPassword: Yup.string()
+      .min(6, 'New password must be at least 6 characters')
+      .matches(/[a-z]/, 'New password must contain at least one lowercase letter')
+      .matches(/[A-Z]/, 'New password must contain at least one uppercase letter')
+      .matches(/[0-9]/, 'New password must contain at least one number')
+      .matches(/[@$!%*?&]/, 'New password must contain at least one special character')
+      .required('Current password is required'),
+    newPassword: Yup.string()
+      .min(6, 'New password must be at least 6 characters')
+      .matches(/[a-z]/, 'New password must contain at least one lowercase letter')
+      .matches(/[A-Z]/, 'New password must contain at least one uppercase letter')
+      .matches(/[0-9]/, 'New password must contain at least one number')
+      .matches(/[@$!%*?&]/, 'New password must contain at least one special character')
+      .required('New password is required'),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref('newPassword')], 'Passwords must match')
+      .required('Confirm Password is required'),
+  });
+
+  const formik = useFormik<ChangePasswordRequest>({
+    initialValues: { currentPassword: "", confirmPassword: "", newPassword: "" },
+    validationSchema,
+    onSubmit: async (values) => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await axiosInstance.put(`/api/changePassword`, values);
+        if (response.data.status) {
+          setError("Password change successfully");
+          setSuccessMsg(true);
+        } else {
+          setError(response.data.msg);
+          setSuccessMsg(false);
+        }
+      } catch (error: any) {
+        setError(error?.message || "An unknown error occurred.");
+        setSuccessMsg(false);
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
   return (
     <div className='flex flex-col gap-4 min-w-lg'>
+      {error && (
+        <AlertMsg msg={error} isSuccess={successMsg} />
+      )}
       <h1 className='text-4xl font-bold mb-5'>Change Password</h1>
-      <div className='flex flex-col gap-2'>
-        <label htmlFor="currentPass">Current Password</label>
-        <Input id='currentPass' placeholder='Current Password' className='w-full' />
-      </div>
-      <div className='flex flex-col gap-2'>
-        <label htmlFor="newPass">New Password</label>
-        <Input id='newPass' placeholder='New Password' className='w-full' />
-      </div>
-      <div className='flex flex-col gap-2'>
-        <label htmlFor="confirmPass">Confirm Password</label>
-        <Input id='confirmPass' placeholder='Confirm Password' className='w-full' />
-      </div>
-      <Button className='w-min mt-2'>Submit</Button>
+      <form onSubmit={formik.handleSubmit}>
+        <div className='flex flex-col gap-2'>
+          <label htmlFor="currentPassword">Current Password</label>
+          <Input id='currentPassword' placeholder='Current Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.currentPassword} />
+          {formik.errors.currentPassword && formik.touched.currentPassword && (
+            <ValidationMsg msg={formik.errors.currentPassword} />
+          )}
+        </div>
+        <div className='flex flex-col gap-2'>
+          <label htmlFor="newPassword">New Password</label>
+          <Input id='newPassword' placeholder='New Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.newPassword} />
+          {formik.errors.newPassword && formik.touched.newPassword && (
+            <ValidationMsg msg={formik.errors.newPassword} />
+          )}
+        </div>
+        <div className='flex flex-col gap-2'>
+          <label htmlFor="confirmPassword">Confirm Password</label>
+          <Input id='confirmPassword' placeholder='Confirm Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.confirmPassword} />
+          {formik.errors.confirmPassword && formik.touched.confirmPassword && (
+            <ValidationMsg msg={formik.errors.confirmPassword} />
+          )}
+        </div>
+        <Button type="submit" className='w-min mt-2' disabled={loading}>
+          {loading && (<Loader2 className="animate-spin" />)}
+          Submit
+        </Button>
+      </form>
     </div>
   )
 }
@@ -255,8 +327,9 @@ function DeleteAccountComponent() {
   const handleDeleteAccount = async () => {
     try {
       const response = await axiosInstance.delete('/api/deleteAccount');
-      if (response.data.success) {
+      if (response.data.status) {
         alert("Account deleted successfully");
+        removeToken();
         navigate('/');
       } else {
         alert(response.data.message || "Error deleting account");

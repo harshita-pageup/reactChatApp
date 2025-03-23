@@ -21,7 +21,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     useEffect(() => {
         axiosInstance.get('/api/authUser').then(res => {
-            setUser(res.data.data.user);
+            setUser(res.data.data);
         });
     }, []);
 
