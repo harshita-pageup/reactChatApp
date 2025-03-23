@@ -9,6 +9,7 @@ import { useUser } from '@/context/UserContext';
 import { ChatUser, Message } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Pusher from 'pusher-js';
 
 const Chats = () => {
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
@@ -70,19 +71,64 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   const [typeMsg, setTypeMsg] = useState<string>('');
   const [replyMsg, setReplyMsg] = useState<Message | null>(null);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
-
   const [fetchMsgLoading, setFetchMsgLoading] = useState<boolean>(false);
   const [sendMsgLoading, setSendMsgLoading] = useState<boolean>(false);
+
+  const { user } = useUser();
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  // Initialize Pusher
+  useEffect(() => {
+    if (!selectedUser) return;
+
+    const pusher = new Pusher('154cebd158bd69a4aa80', {
+      cluster: 'us2'
+    });
+    const channel = pusher.subscribe(`chat.${user.id}`);
+    channel.bind('new-message', (data: Message) => {
+      let date = new Date().toISOString().split('T')[0];
+      setMessages((prev) => {
+        const updatedMessages = { ...prev };
+        if (!updatedMessages[date]) {
+          updatedMessages[date] = [];
+        }
+        // Check if the message id already exists for the current date
+        const messageExists = updatedMessages[date].some(msg => msg.id === data.message.id);
+
+        // If the message doesn't exist, add it to the array
+        if (!messageExists) {
+          updatedMessages[date] = [
+            ...updatedMessages[date],
+            {
+              id: data.message.id,
+              message: data.message.message,
+              senderId: data.message.senderId,
+              receiverId: data.message.receiverId,
+              sender: data.message.sender,
+              receiver: data.message.receiver,
+              isSender: user.id === data.message.senderId,
+              replyTo: null,
+              reactions: [],
+              date: date,
+            },
+          ];
+        }
+        return updatedMessages;
+      });
+    });
+
+    return () => {
+      pusher.unsubscribe(`chat-${selectedUser.id}`);
+    };
+  }, [selectedUser]);
 
   const fetchMessages = async (userId: number) => {
     setFetchMsgLoading(true);
     console.log('Entered into ChatScreen::fetchMessages');
     try {
       const response = await axiosInstance.post(`/api/getMessages`, { receiverId: userId });
-
       if (response.data.status) {
         const messagesData = response.data.data;
-
         const updatedMessages: Record<string, Message[]> = { ...messages };
         messagesData.forEach((message: Message) => {
           const messageDate = new Date(message.date).toISOString().split('T')[0];
@@ -109,6 +155,17 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
       fetchMessages(selectedUser.id);
     }
   }, [selectedUser]);
+
+  useEffect(() => {
+    chatRef.current?.scrollIntoView();
+  }, [selectedUser, messages]);
+
+  const handleSendMessage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (typeMsg.trim()) {
+      addMessage(typeMsg, selectedUser.id);
+    }
+  };
 
   const addMessage = async (message: string, receiverId: number) => {
     console.log('Entered into ChatScreen::addMessage');
@@ -152,7 +209,6 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     }
   }
 
-  const { user } = useUser();
   const addReaction = async (reaction: string, message: Message) => {
     console.log('Entered into ChatScreen::addReaction');
     try {
@@ -218,17 +274,6 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     }
   }
 
-  const chatRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    chatRef.current?.scrollIntoView();
-  }, [selectedUser, messages]);
-
-  const handleSendMessage = (e?: React.FormEvent) => {
-    if (e) e.preventDefault(); // Prevent form submission or key event bubbling
-    if (typeMsg.trim()) {
-      addMessage(typeMsg, selectedUser.id);
-    }
-  };
   return (
     <>
       <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">

@@ -130,9 +130,6 @@ function ProfileDropDown() {
         <DropdownMenuItem onClick={() => navigate('/profile')}>
           <User2 /> Profile
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Palette /> Theme
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           {loading ? (<Loader2 className="animate-spin" />) : (<LogOut />)}

@@ -73,10 +73,18 @@ const Profile = () => {
     </SidebarProvider>
   )
 }
+const profileValidationSchema = Yup.object({
+  name: Yup.string()
+    .min(3, 'Name must be at least 3 characters')
+    .max(150, 'Name must be less than 150 characters')
+    .required('Name is required'),
+  email: Yup.string().max(150).email('Invalid email format').required('Email is required'),
+  profileImage: Yup.string().nullable(),
+});
 
 function ProfileComponent() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [name, setName] = useState<string>('');
+  const [nameState, setNameState] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [crop, setCrop] = useState<any>();
@@ -88,8 +96,14 @@ function ProfileComponent() {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get(`/api/authUser`);
-        setProfileImage(response.data.data.profile || 'https://ui-avatars.com/api/?background=222&color=fff&name=HS');
-        setName(response.data.data.name);
+        if(response.data.data.profile)
+        {
+          setProfileImage("http://127.0.0.1:8000/uploads/"+response.data.data.profile);  
+        }
+        else{
+          setProfileImage('https://ui-avatars.com/api/?background=222&color=fff&name=HS');
+        }
+        setNameState(response.data.data.name);
         setEmail(response.data.data.email);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -162,19 +176,29 @@ function ProfileComponent() {
     }
   };
 
-  const handleSubmit = async () => {
-    const updatedProfile = {
-      name,
-      email,
-      profileImage
-    };
+  const formik = useFormik({
+    enableReinitialize: true, 
+    initialValues: {
+      name: nameState,
+      email: email,
+      profileImage: profileImage,
+    },
+    validationSchema: profileValidationSchema,
+    onSubmit: async (values) => {
+      const updatedProfile = {
+        name: values.name,
+        email: values.email,
+        profile: values.profileImage,
+      };
 
-    try {
-      await axiosInstance.post(`/api/updateProfile`, updatedProfile);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-    }
-  };
+      try {
+        await axiosInstance.post(`/api/updateProfile`, updatedProfile);
+        alert("Profile updated successfully!");
+      } catch (error) {
+        console.error("Error updating profile:", error);
+      }
+    },
+  });
 
   return (
     <div className='flex flex-col gap-4 min-w-lg'>
@@ -222,15 +246,23 @@ function ProfileComponent() {
         </div>
       )}
 
-      <div className='flex flex-col gap-2'>
-        <label htmlFor="name">Name</label>
-        <Input id='name' placeholder='Name' className='w-full' value={name} onChange={(e) => setName(e.target.value)} />
-      </div>
-      <div className='flex flex-col gap-2'>
-        <label htmlFor="email">Email</label>
-        <Input id='email' placeholder='Email' className='w-full' value={email} onChange={(e) => setEmail(e.target.value)} />
-      </div>
-      <Button className='w-min mt-2' onClick={handleSubmit}>Submit</Button>
+      <form onSubmit={formik.handleSubmit}>
+        <div className='flex flex-col gap-2'>
+          <label htmlFor="name">Name</label>
+          <Input id='name' placeholder='Name' className='w-full' value={formik.values.name} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+          {formik.errors.name && formik.touched.name && (
+            <ValidationMsg msg={formik.errors.name} />
+          )}
+        </div>
+        <div className='flex flex-col gap-2'>
+          <label htmlFor="email">Email</label>
+          <Input id='email' placeholder='Email' className='w-full' value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+          {formik.errors.email && formik.touched.email && (
+            <ValidationMsg msg={formik.errors.email} />
+          )}
+        </div>
+        <Button type='submit' className='w-min mt-2'>Submit</Button>
+      </form>
     </div>
   )
 }
@@ -242,11 +274,11 @@ function ChangePasswordComponent() {
 
   const validationSchema = Yup.object({
     currentPassword: Yup.string()
-      .min(6, 'New password must be at least 6 characters')
-      .matches(/[a-z]/, 'New password must contain at least one lowercase letter')
-      .matches(/[A-Z]/, 'New password must contain at least one uppercase letter')
-      .matches(/[0-9]/, 'New password must contain at least one number')
-      .matches(/[@$!%*?&]/, 'New password must contain at least one special character')
+      .min(6, 'Current password must be at least 6 characters')
+      .matches(/[a-z]/, 'Current password must contain at least one lowercase letter')
+      .matches(/[A-Z]/, 'Current password must contain at least one uppercase letter')
+      .matches(/[0-9]/, 'Current password must contain at least one number')
+      .matches(/[@$!%*?&]/, 'Current password must contain at least one special character')
       .required('Current password is required'),
     newPassword: Yup.string()
       .min(6, 'New password must be at least 6 characters')
@@ -294,21 +326,21 @@ function ChangePasswordComponent() {
       <form onSubmit={formik.handleSubmit}>
         <div className='flex flex-col gap-2'>
           <label htmlFor="currentPassword">Current Password</label>
-          <Input id='currentPassword' placeholder='Current Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.currentPassword} />
+          <Input id='currentPassword' type='password' placeholder='Current Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.currentPassword} />
           {formik.errors.currentPassword && formik.touched.currentPassword && (
             <ValidationMsg msg={formik.errors.currentPassword} />
           )}
         </div>
         <div className='flex flex-col gap-2'>
           <label htmlFor="newPassword">New Password</label>
-          <Input id='newPassword' placeholder='New Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.newPassword} />
+          <Input id='newPassword' type='password' placeholder='New Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.newPassword} />
           {formik.errors.newPassword && formik.touched.newPassword && (
             <ValidationMsg msg={formik.errors.newPassword} />
           )}
         </div>
         <div className='flex flex-col gap-2'>
           <label htmlFor="confirmPassword">Confirm Password</label>
-          <Input id='confirmPassword' placeholder='Confirm Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.confirmPassword} />
+          <Input id='confirmPassword' type='password' placeholder='Confirm Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.confirmPassword} />
           {formik.errors.confirmPassword && formik.touched.confirmPassword && (
             <ValidationMsg msg={formik.errors.confirmPassword} />
           )}
