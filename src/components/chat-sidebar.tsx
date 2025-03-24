@@ -119,7 +119,7 @@ function ProfileDropDown() {
       <DropdownMenuContent side='right' sideOffset={15} align='end' alignOffset={-10} className='w-[14rem] mb-2'>
         <DropdownMenuLabel className='flex justify-between items-center p-1.5'>
           <div className='flex gap-1.5'>
-            <img src={`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
+            <img src={"http://127.0.0.1:8000/uploads/"+user.profile ||`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
             <div className="grid flex-1 text-left text-sm leading-tight">
               <p className='truncate font-semibold'>{user.name}</p>
               <p className='truncate text-xs'>{user.email}</p>
