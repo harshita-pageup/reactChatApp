@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { SidebarProvider } from '@/components/ui/sidebar'
 import UserAvatar from '@/components/user-avatar';
 import { useUser } from '@/context/UserContext';
-import { ChatUser, Message } from '@/types/auth';
+import { ChatUser, Message, User } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
@@ -84,7 +84,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     const pusher = new Pusher('154cebd158bd69a4aa80', {
       cluster: 'us2'
     });
-    const channel = pusher.subscribe(`chat.${user.id}`);
+    const channel = pusher.subscribe(`chat.${user.id}.${selectedUser.id}`);
     channel.bind('new-message', (data: Message) => {
       let date = new Date().toISOString().split('T')[0];
       setMessages((prev) => {
@@ -107,7 +107,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
               sender: data.message.sender,
               receiver: data.message.receiver,
               isSender: user.id === data.message.senderId,
-              replyTo: null,
+              replyTo: data.message.replyTo,
               reactions: [],
               date: date,
             },
@@ -117,8 +117,58 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
       });
     });
 
+    
+    const reactionChannel = pusher.subscribe(`reaction.${user.id}.${selectedUser.id}`);
+    // Listen for new reaction event
+    reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User }) => {
+      let date = new Date().toISOString().split('T')[0];
+      console.log(data)
+      setMessages((prev) => {
+        const updatedMessages = { ...prev };
+        const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === data.messageId);
+
+        if (messageToUpdate) {
+          const existingReactionIndex = messageToUpdate.reactions.findIndex(
+            (r) => r.user.id === data.userId
+          );
+
+          if (existingReactionIndex !== -1) {
+            messageToUpdate.reactions = [
+              ...messageToUpdate.reactions.slice(0, existingReactionIndex),
+              {
+                ...messageToUpdate.reactions[existingReactionIndex],
+                emojie: data.emojie,
+              },
+              ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
+            ];
+          } else {
+            messageToUpdate.reactions = [
+              ...messageToUpdate.reactions,
+              {
+                emojie: data.emojie,
+                user: {
+                  id: user!.id,
+                  name: user!.name,
+                  email: user!.email,
+                  profile: user!.profile || '',
+                  isOnline: false
+                },
+              },
+            ];
+          }
+
+          updatedMessages[date] = updatedMessages[date].map((msg) =>
+            msg.id === data.messageId ? { ...msg } : msg
+          );
+        }
+
+        return updatedMessages;
+      });
+    });
+
     return () => {
-      pusher.unsubscribe(`chat-${selectedUser.id}`);
+      pusher.unsubscribe(`chat.${user.id}.${selectedUser.id}`);
+      pusher.unsubscribe(`reaction.${user.id}.${selectedUser.id}`);
     };
   }, [selectedUser]);
 
