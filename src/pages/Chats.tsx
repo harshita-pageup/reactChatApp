@@ -73,9 +73,42 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [fetchMsgLoading, setFetchMsgLoading] = useState<boolean>(false);
   const [sendMsgLoading, setSendMsgLoading] = useState<boolean>(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingTxt, setTypingTxt] = useState('Online');
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);
+
+  // Function to call the typingStatus API
+  const updateTypingStatus = async (typing: boolean) => {
+    try {
+      await axiosInstance.post('/api/typingStatus', {
+        userId: user.id,
+        isTyping: typing,
+      });
+    } catch (error) {
+      console.log('Error in ChatScreen::updateTypingStatus ->', error);
+    }
+  };
+
+  useEffect(() => {
+    updateTypingStatus(isTyping);
+  }, [isTyping]);
+
+  const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTypeMsg(e.target.value);
+
+    if (!isTyping) {
+      setIsTyping(true);
+    }
+
+    // Stop typing after a delay
+    const typingTimeout = setTimeout(() => {
+      setIsTyping(false);
+    }, 2000);
+
+    return () => clearTimeout(typingTimeout);
+  };
 
   // Initialize Pusher
   useEffect(() => {
@@ -117,7 +150,11 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
       });
     });
 
-    
+    const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
+    chatChannel.bind('user-typing', (data) => {
+      setTypingTxt(data.isTyping?'Typing..':'Online');
+    });
+
     const reactionChannel = pusher.subscribe(`reaction.${user.id}.${selectedUser.id}`);
     // Listen for new reaction event
     reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User }) => {
@@ -168,6 +205,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
 
     return () => {
       pusher.unsubscribe(`chat.${user.id}.${selectedUser.id}`);
+      pusher.unsubscribe(`chat.${selectedUser.id}`);
       pusher.unsubscribe(`reaction.${user.id}.${selectedUser.id}`);
     };
   }, [selectedUser]);
@@ -214,6 +252,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     if (e) e.preventDefault();
     if (typeMsg.trim()) {
       addMessage(typeMsg, selectedUser.id);
+      setIsTyping(false);
     }
   };
 
@@ -331,7 +370,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
           <UserAvatar userProfileOrName={selectedUser.profile || selectedUser.name} size="md" />
           <div className="flex flex-col justify-center">
             <p className="text-md line-clamp-1 font-bold transition-all">{selectedUser.name}</p>
-            <p className="text-xs">online</p>
+            <p className="text-xs">{typingTxt}</p>
           </div>
         </div>
         <div className="flex">
@@ -406,7 +445,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
             placeholder="Type a message..."
             className="mx-2"
             value={typeMsg}
-            onChange={(e) => setTypeMsg(e.target.value)}
+            onChange={handleTyping}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) { // Allow Shift+Enter for new lines
                 e.preventDefault(); // Prevent default Enter behavior
