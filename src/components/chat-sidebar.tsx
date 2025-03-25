@@ -14,7 +14,6 @@ import { ChevronsUpDown, Loader2, LogOut, MenuSquareIcon, Palette, User2 } from 
 import { ChatUser, User } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import UserAvatar from "./user-avatar";
 import NewMessageDialog from "./new-message-dialog";
 import { removeToken } from "@/utils/auth";
 import { useState } from "react";
@@ -119,7 +118,7 @@ function ProfileDropDown() {
       <DropdownMenuContent side='right' sideOffset={15} align='end' alignOffset={-10} className='w-[14rem] mb-2'>
         <DropdownMenuLabel className='flex justify-between items-center p-1.5'>
           <div className='flex gap-1.5'>
-            <img src={"http://127.0.0.1:8000/uploads/"+user.profile ||`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
+            <img src={user.profile!=null?"http://127.0.0.1:8000/uploads/"+user.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
             <div className="grid flex-1 text-left text-sm leading-tight">
               <p className='truncate font-semibold'>{user.name}</p>
               <p className='truncate text-xs'>{user.email}</p>
@@ -144,7 +143,7 @@ type UserInfoProps = { user: User }
 function UserInfo({ user }: UserInfoProps) {
   return (
     <>
-      <UserAvatar userProfileOrName={user.profile || user.name} />
+    <img src={user.profile!=null?"http://127.0.0.1:8000/uploads/"+user.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
       <div className="grid flex-1 text-left text-sm leading-tight">
         <span className="truncate font-medium">{user.name}</span>
         <span className="text-muted-foreground truncate text-xs">{user.email}</span>
@@ -157,8 +156,7 @@ type UserCardProps = { chatUser: ChatUser, isSelected: boolean }
 function UserCard({ chatUser, isSelected }: UserCardProps) {
   return (
     <button className={`flex items-center gap-2.5 rounded-lg border-2 p-3 text-left text-sm transition-all hover:bg-accent w-full ${isSelected ? 'bg-muted' : ''}`}>
-      <UserAvatar userProfileOrName={chatUser.profile || chatUser.name} />
-
+      <img src={chatUser.profile!=null?"http://127.0.0.1:8000/uploads/"+chatUser.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${chatUser.name}`} className='w-10 h-10 rounded-full object-cover' />
       <div className="flex flex-col w-full">
         <div className="flex w-full flex-col gap-1">
           <div className="flex items-center">

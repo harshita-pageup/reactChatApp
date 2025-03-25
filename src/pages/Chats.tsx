@@ -4,7 +4,6 @@ import { ChatSidebar } from '@/components/chat-sidebar'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarProvider } from '@/components/ui/sidebar'
-import UserAvatar from '@/components/user-avatar';
 import { useUser } from '@/context/UserContext';
 import { ChatUser, Message, User } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
@@ -367,7 +366,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     <>
       <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
         <div className="flex items-center gap-4">
-          <UserAvatar userProfileOrName={selectedUser.profile || selectedUser.name} size="md" />
+          <img src={selectedUser.profile!=null?"http://127.0.0.1:8000/uploads/"+selectedUser.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${selectedUser.name}`} className='w-14 h-14 rounded-full object-cover' />
           <div className="flex flex-col justify-center">
             <p className="text-md line-clamp-1 font-bold transition-all">{selectedUser.name}</p>
             <p className="text-xs">{typingTxt}</p>

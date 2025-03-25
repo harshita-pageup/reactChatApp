@@ -13,6 +13,7 @@ import AlertMsg from '@/components/alert-msg';
 import { useFormik } from 'formik';
 import { ChangePasswordRequest } from '@/types/auth';
 import ValidationMsg from '@/components/validation-err';
+import { useUser } from '@/context/UserContext';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -91,6 +92,7 @@ function ProfileComponent() {
   const [completedCrop, setCompletedCrop] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const { user } = useUser();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -204,7 +206,7 @@ function ProfileComponent() {
     <div className='flex flex-col gap-4 min-w-lg'>
       <h1 className='text-4xl font-bold mb-5'>Profile</h1>
       <div className='relative w-max'>
-        <img src={profileImage || 'https://ui-avatars.com/api/?background=222&color=fff&name=HS'} className='w-42 h-42 rounded-full object-cover' />
+        <img src={user.profile!=null?"http://127.0.0.1:8000/uploads/"+user.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} className='w-42 h-42 rounded-full object-cover' />
         <Button
           size="icon"
           className='absolute -bottom-0 -right-0 rounded-full'

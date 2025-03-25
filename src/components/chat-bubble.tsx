@@ -6,7 +6,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import UserAvatar from "./user-avatar"
 import { PopoverClose } from "@radix-ui/react-popover"
 import { useUser } from "@/context/UserContext"
 
@@ -133,7 +132,7 @@ function DisplayReactions({ reactions, isSender }: DisplayReactionProps) {
               className="flex items-center justify-between p-2 hover:bg-zinc-800 rounded-md cursor-pointer border"
             >
               <div className="flex items-center space-x-3">
-                <UserAvatar userProfileOrName={reaction.user.profile || reaction.user.name} />
+                <img src={reaction.user.profile!=null?"http://127.0.0.1:8000/uploads/"+reaction.user.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${reaction.user.name}`} className='w-14 h-14 rounded-full object-cover' />
                 <div>
                   <p className="text-sm font-medium">{reaction.user.name}</p>
                   <p className="text-xs text-gray-500">{reaction.user.email}</p>

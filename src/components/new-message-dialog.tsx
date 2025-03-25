@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "./ui/input"
 import { useEffect, useState } from "react"
 import { User } from "@/types/auth"
-import UserAvatar from "./user-avatar"
 import { Edit } from "lucide-react"
 import axiosInstance from "@/api/axiosInstance"
 
@@ -78,7 +77,7 @@ const NewMessageDialog = () => {
                 className="flex items-center justify-between p-2 hover:bg-zinc-800 rounded-md cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
-                  <UserAvatar userProfileOrName={user.profile || user.name} />
+                  <img src={user.profile!=null?"http://127.0.0.1:8000/uploads/"+user.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
                   <div>
                     <p className="text-sm font-medium">{user.name}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
