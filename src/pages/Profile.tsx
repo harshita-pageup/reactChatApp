@@ -98,11 +98,10 @@ function ProfileComponent() {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get(`/api/authUser`);
-        if(response.data.data.profile)
-        {
-          setProfileImage("http://127.0.0.1:8000/uploads/"+response.data.data.profile);  
+        if (response.data.data.profile) {
+          setProfileImage("http://127.0.0.1:8000/uploads/" + response.data.data.profile);
         }
-        else{
+        else {
           setProfileImage('https://ui-avatars.com/api/?background=222&color=fff&name=HS');
         }
         setNameState(response.data.data.name);
@@ -179,7 +178,7 @@ function ProfileComponent() {
   };
 
   const formik = useFormik({
-    enableReinitialize: true, 
+    enableReinitialize: true,
     initialValues: {
       name: nameState,
       email: email,
@@ -206,7 +205,7 @@ function ProfileComponent() {
     <div className='flex flex-col gap-4 min-w-lg'>
       <h1 className='text-4xl font-bold mb-5'>Profile</h1>
       <div className='relative w-max'>
-        <img src={user.profile!=null?"http://127.0.0.1:8000/uploads/"+user.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} className='w-42 h-42 rounded-full object-cover' />
+        <img src={user?.profile != null ? "http://127.0.0.1:8000/uploads/" + user.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${user?.name ?? 'GU'}`} className='w-42 h-42 rounded-full object-cover' />
         <Button
           size="icon"
           className='absolute -bottom-0 -right-0 rounded-full'

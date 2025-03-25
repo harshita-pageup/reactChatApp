@@ -82,7 +82,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   const updateTypingStatus = async (typing: boolean) => {
     try {
       await axiosInstance.post('/api/typingStatus', {
-        userId: user.id,
+        userId: user!.id,
         isTyping: typing,
       });
     } catch (error) {
@@ -116,8 +116,8 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     const pusher = new Pusher('154cebd158bd69a4aa80', {
       cluster: 'us2'
     });
-    const channel = pusher.subscribe(`chat.${user.id}.${selectedUser.id}`);
-    channel.bind('new-message', (data: Message) => {
+    const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
+    channel.bind('new-message', ({ message }: { message: Message }) => {
       let date = new Date().toISOString().split('T')[0];
       setMessages((prev) => {
         const updatedMessages = { ...prev };
@@ -125,21 +125,21 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
           updatedMessages[date] = [];
         }
         // Check if the message id already exists for the current date
-        const messageExists = updatedMessages[date].some(msg => msg.id === data.message.id);
+        const messageExists = updatedMessages[date].some(msg => msg.id === message.id);
 
         // If the message doesn't exist, add it to the array
         if (!messageExists) {
           updatedMessages[date] = [
             ...updatedMessages[date],
             {
-              id: data.message.id,
-              message: data.message.message,
-              senderId: data.message.senderId,
-              receiverId: data.message.receiverId,
-              sender: data.message.sender,
-              receiver: data.message.receiver,
-              isSender: user.id === data.message.senderId,
-              replyTo: data.message.replyTo,
+              id: message.id,
+              message: message.message,
+              senderId: message.senderId,
+              receiverId: message.receiverId,
+              sender: message.sender,
+              receiver: message.receiver,
+              isSender: user!.id === message.senderId,
+              replyTo: message.replyTo,
               reactions: [],
               date: date,
             },
@@ -150,11 +150,11 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     });
 
     const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
-    chatChannel.bind('user-typing', (data) => {
-      setTypingTxt(data.isTyping?'Typing..':'Online');
+    chatChannel.bind('user-typing', ({ userId, isTyping }: { userId: number, isTyping: boolean }) => {
+      setTypingTxt(isTyping ? 'Typing...' : 'Online');
     });
 
-    const reactionChannel = pusher.subscribe(`reaction.${user.id}.${selectedUser.id}`);
+    const reactionChannel = pusher.subscribe(`reaction.${user!.id}.${selectedUser.id}`);
     // Listen for new reaction event
     reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User }) => {
       let date = new Date().toISOString().split('T')[0];
@@ -203,9 +203,9 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     });
 
     return () => {
-      pusher.unsubscribe(`chat.${user.id}.${selectedUser.id}`);
+      pusher.unsubscribe(`chat.${user!.id}.${selectedUser.id}`);
       pusher.unsubscribe(`chat.${selectedUser.id}`);
-      pusher.unsubscribe(`reaction.${user.id}.${selectedUser.id}`);
+      pusher.unsubscribe(`reaction.${user!.id}.${selectedUser.id}`);
     };
   }, [selectedUser]);
 
@@ -366,7 +366,7 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
     <>
       <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
         <div className="flex items-center gap-4">
-          <img src={selectedUser.profile!=null?"http://127.0.0.1:8000/uploads/"+selectedUser.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${selectedUser.name}`} className='w-14 h-14 rounded-full object-cover' />
+          <img src={selectedUser.profile != null ? "http://127.0.0.1:8000/uploads/" + selectedUser.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${selectedUser.name}`} className='w-14 h-14 rounded-full object-cover' />
           <div className="flex flex-col justify-center">
             <p className="text-md line-clamp-1 font-bold transition-all">{selectedUser.name}</p>
             <p className="text-xs">{typingTxt}</p>

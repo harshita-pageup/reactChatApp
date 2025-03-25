@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "./ui/input"
 import { useEffect, useState } from "react"
 import { User } from "@/types/auth"
-import { Edit } from "lucide-react"
+import { CheckIcon, Edit } from "lucide-react"
 import axiosInstance from "@/api/axiosInstance"
 
 const fetchUsers = async () => {
@@ -26,6 +26,7 @@ const NewMessageDialog = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<number | null>();
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -36,15 +37,15 @@ const NewMessageDialog = () => {
     loadUsers();
   }, []);
 
-    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      setSearchTerm(value);
-      const filtered = users.filter(user => 
-        user.name.toLowerCase().includes(value.toLowerCase()) || 
-        user.email.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredUsers(filtered);
-    };
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSearchTerm(value);
+    const filtered = users.filter(user =>
+      user.name.toLowerCase().includes(value.toLowerCase()) ||
+      user.email.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  };
 
   return (
     <Dialog>
@@ -70,23 +71,26 @@ const NewMessageDialog = () => {
               onChange={handleSearchChange}
             />
           </div>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="space-y-2 max-h-60 overflow-y-auto flex flex-col">
             {filteredUsers.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between p-2 hover:bg-zinc-800 rounded-md cursor-pointer"
-              >
-                <div className="flex items-center space-x-3">
-                  <img src={user.profile!=null?"http://127.0.0.1:8000/uploads/"+user.profile:`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
-                  <div>
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-gray-500">{user.email}</p>
+              <label key={user.id} onClick={() => setSelectedUser(user.id)}>
+                <input type="radio" name="users" className="hidden peer" checked={selectedUser === user.id} />
+                <div
+                  className="flex items-center justify-between p-2 hover:bg-zinc-800 rounded-md cursor-pointer peer-checked:bg-zinc-800"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img src={user.profile != null ? "http://127.0.0.1:8000/uploads/" + user.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
+                    <div>
+                      <p className="text-sm font-medium">{user.name}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
                   </div>
+                  {selectedUser === user.id && <CheckIcon className="w-4 h-4 " />}
                 </div>
-              </div>
+              </label>
             ))}
           </div>
-          <Button className="w-full">
+          <Button className="w-full" disabled={!selectedUser}>
             Continue
           </Button>
         </div>
