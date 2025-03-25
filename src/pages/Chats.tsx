@@ -9,6 +9,7 @@ import { ChatUser, Message, User } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
+import usePresence from '@/hooks/use-presence';
 
 const Chats = () => {
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
