@@ -9,6 +9,7 @@ import Chats from './pages/Chats'
 import { isAuthenticated } from './utils/auth'
 import { UserProvider } from './context/UserContext'
 import Profile from './pages/Profile'
+import { UserListProvider } from './context/UserListContext'
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   return isAuthenticated() ? children : <Navigate to="/" />;
@@ -29,7 +30,9 @@ const router = createBrowserRouter(
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <UserProvider>
-      <RouterProvider router={router} />
+      <UserListProvider>
+        <RouterProvider router={router} />
+      </UserListProvider>
     </UserProvider>
   </StrictMode>
 )

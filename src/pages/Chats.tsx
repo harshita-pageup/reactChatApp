@@ -9,12 +9,57 @@ import { ChatUser, Message, User } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, UserPlusIcon, Video, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
-import usePresence from '@/hooks/use-presence';
+import { getToken } from '@/utils/auth';
+import { useChatUsers } from '@/context/UserListContext';
 
 const Chats = () => {
+  const { chatUsers, setChatUsers } = useChatUsers();
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
-  const [chatUsers, setChatUsers] = useState<ChatUser[]>([]);
   const [fetchListLoading, setFetchListLoading] = useState<boolean>(true);
+
+  const pusher = new Pusher('154cebd158bd69a4aa80', {
+    cluster: 'us2',
+    authEndpoint: 'http://127.0.0.1:8000/api/pusher/auth',
+    auth: {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`,
+      }
+    }
+  });
+
+  useEffect(() => {
+    // Subscribe to presence channel
+    const channel = pusher.subscribe('presence-chat');
+
+    // Bind events
+    channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
+      Object.keys(members).map((value: string) => {
+        let onlineUser = members[value].user as User
+        setChatUsers((prev) => {
+          const updatedChatUsers = prev.map((user) => {
+            if (user.id === someId) {
+              return { ...user, name: 'Updated Name' }; // Modify the user object
+            }
+            return user; // Return other users unchanged
+          });
+          return updatedChatUsers;
+        });
+      })
+    });
+
+    channel.bind('pusher:member_added', (member: any) => {
+      console.log(member);
+    });
+
+    channel.bind('pusher:member_removed', (member: any) => {
+      console.log(member);
+    });
+
+    // Cleanup
+    return () => {
+      pusher.unsubscribe('presence-chat');
+    };
+  }, []);
 
   const fetchChatUsers = async () => {
     setFetchListLoading(true);
