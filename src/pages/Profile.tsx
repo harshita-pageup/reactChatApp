@@ -14,66 +14,73 @@ import { useFormik } from 'formik';
 import { ChangePasswordRequest } from '@/types/auth';
 import ValidationMsg from '@/components/validation-err';
 import { useUser } from '@/context/UserContext';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 const Profile = () => {
   const navigate = useNavigate();
   const [type, setType] = useState<number>(1);
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <h1 className="text-xl font-bold p-1">Profile</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => { setType(1); }} className={`border py-6 ${type === 1 ? 'bg-accent' : ''}`}>
-                  <a className='flex items-center gap-2'>
-                    <User2 />
-                    Profile
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => { setType(2); }} className={`border py-6 ${type === 2 ? 'bg-accent' : ''}`}>
-                  <a className='flex items-center gap-2'>
-                    <LockIcon />
-                    Change Password
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => { setType(3); }} className={`border py-6 ${type === 3 ? 'bg-accent' : ''}`}>
-                  <a className='flex items-center gap-2'>
-                    <UserX2 />
-                    Delete Account
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
-        </SidebarContent>
+    <>
+      <SidebarProvider>
+        <Sidebar>
+          <SidebarHeader>
+            <h1 className="text-xl font-bold p-1">Profile</h1>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={() => { setType(1); }} className={`border py-6 ${type === 1 ? 'bg-accent' : ''}`}>
+                    <a className='flex items-center gap-2'>
+                      <User2 />
+                      Profile
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={() => { setType(2); }} className={`border py-6 ${type === 2 ? 'bg-accent' : ''}`}>
+                    <a className='flex items-center gap-2'>
+                      <LockIcon />
+                      Change Password
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={() => { setType(3); }} className={`border py-6 ${type === 3 ? 'bg-accent' : ''}`}>
+                    <a className='flex items-center gap-2'>
+                      <UserX2 />
+                      Delete Account
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroup>
+          </SidebarContent>
 
-        <SidebarFooter>
-          <SidebarMenuButton onClick={() => { navigate('/chats'); }} className='border py-6'>
-            <Link to="/chats" className='flex items-center gap-2'>
-              <SkipBack />
-              Go Back
-            </Link>
-          </SidebarMenuButton>
-        </SidebarFooter>
-      </Sidebar>
+          <SidebarFooter>
+            <SidebarMenuButton onClick={() => { navigate('/chats'); }} className='border py-6'>
+              <Link to="/chats" className='flex items-center gap-2'>
+                <SkipBack />
+                Go Back
+              </Link>
+            </SidebarMenuButton>
+          </SidebarFooter>
+        </Sidebar>
 
-      <div className='pl-10 pt-20'>
-        {type === 1 && <ProfileComponent />}
-        {type === 2 && <ChangePasswordComponent />}
-        {type === 3 && <DeleteAccountComponent />}
-      </div>
-    </SidebarProvider>
+        <div className='pl-10 pt-20'>
+          {type === 1 && <ProfileComponent />}
+          {type === 2 && <ChangePasswordComponent />}
+          {type === 3 && <DeleteAccountComponent />}
+        </div>
+      </SidebarProvider>
+      <Toaster />
+    </>
   )
 }
+
 const profileValidationSchema = Yup.object({
   name: Yup.string()
     .min(3, 'Name must be at least 3 characters')
@@ -194,8 +201,9 @@ function ProfileComponent() {
 
       try {
         await axiosInstance.post(`/api/updateProfile`, updatedProfile);
-        alert("Profile updated successfully!");
+        toast('Profile updated successfully.');
       } catch (error) {
+        toast('Something went wrong! Please try again later.')
         console.error("Error updating profile:", error);
       }
     },
@@ -205,7 +213,7 @@ function ProfileComponent() {
     <div className='flex flex-col gap-4 min-w-lg'>
       <h1 className='text-4xl font-bold mb-5'>Profile</h1>
       <div className='relative w-max'>
-        <img src={user?.profile != null ? "http://127.0.0.1:8000/uploads/" + user.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${user?.name ?? 'GU'}`} className='w-42 h-42 rounded-full object-cover' />
+        <img src={profileImage ? profileImage : (user?.profile != null ? "http://127.0.0.1:8000/uploads/" + user.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${user?.name ?? 'GU'}`)} className='w-42 h-42 rounded-full object-cover' />
         <Button
           size="icon"
           className='absolute -bottom-0 -right-0 rounded-full'
@@ -222,9 +230,12 @@ function ProfileComponent() {
         />
       </div>
 
-      {imageToCrop && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded-lg">
+      <Dialog open={imageToCrop != null} onOpenChange={() => setImageToCrop(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crop Image</DialogTitle>
+          </DialogHeader>
+          <div className='max-w-[30rem] max-h-[30rem] text-center overflow-auto rounded-md'>
             <ReactCrop
               crop={crop}
               onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -232,22 +243,24 @@ function ProfileComponent() {
               aspect={1}
               circularCrop
             >
-              <img
-                ref={imgRef}
-                src={imageToCrop}
-                onLoad={onImageLoad}
-                className="max-h-[70vh]"
-              />
+              {imageToCrop && (
+                <img
+                  ref={imgRef}
+                  src={imageToCrop}
+                  onLoad={onImageLoad}
+                  className="object-cover object-center"
+                />
+              )}
             </ReactCrop>
-            <div className="flex gap-2 mt-4 justify-end">
-              <Button onClick={() => setImageToCrop(null)}>Cancel</Button>
-              <Button onClick={getCroppedImage}>Crop & Save</Button>
-            </div>
           </div>
-        </div>
-      )}
+          <div className="flex gap-2 mt-4 justify-end">
+            <Button variant='outline' onClick={() => setImageToCrop(null)}>Cancel</Button>
+            <Button onClick={getCroppedImage}>Crop & Save</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      <form onSubmit={formik.handleSubmit}>
+      <form onSubmit={formik.handleSubmit} className='flex flex-col gap-3'>
         <div className='flex flex-col gap-2'>
           <label htmlFor="name">Name</label>
           <Input id='name' placeholder='Name' className='w-full' value={formik.values.name} onChange={formik.handleChange} onBlur={formik.handleBlur} />
@@ -324,7 +337,7 @@ function ChangePasswordComponent() {
         <AlertMsg msg={error} isSuccess={successMsg} />
       )}
       <h1 className='text-4xl font-bold mb-5'>Change Password</h1>
-      <form onSubmit={formik.handleSubmit}>
+      <form onSubmit={formik.handleSubmit} className='flex flex-col gap-3'>
         <div className='flex flex-col gap-2'>
           <label htmlFor="currentPassword">Current Password</label>
           <Input id='currentPassword' type='password' placeholder='Current Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.currentPassword} />
@@ -357,16 +370,15 @@ function ChangePasswordComponent() {
 
 function DeleteAccountComponent() {
   const navigate = useNavigate();
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
   const handleDeleteAccount = async () => {
     try {
       const response = await axiosInstance.delete('/api/deleteAccount');
       if (response.data.status) {
-        alert("Account deleted successfully");
         removeToken();
         navigate('/');
-      } else {
-        alert(response.data.message || "Error deleting account");
       }
+      window.location.reload();
     } catch (error) {
       console.error("Error deleting account:", error);
       alert("Error deleting account");
@@ -379,7 +391,23 @@ function DeleteAccountComponent() {
       <p>Once your account is deleted, all of its resources and data will be permanently deleted.
         Before deleting your account, please download any data or information that you wish to
         retain.</p>
-      <Button variant='destructive' className='w-min mt-2' onClick={handleDeleteAccount}>Delete Account</Button>
+
+      <Dialog open={showConfirm} onOpenChange={() => setShowConfirm(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. Are you sure you want to permanently
+              delete your account from our servers?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setShowConfirm(false)}>Cancel</Button>
+            <Button onClick={handleDeleteAccount}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Button variant='destructive' className='w-min mt-2' onClick={() => setShowConfirm(true)}>Delete Account</Button>
     </div>
   )
 }
