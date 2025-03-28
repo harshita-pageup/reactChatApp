@@ -10,7 +10,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ChevronsUpDown, Loader2, LogOut, MenuSquareIcon, Palette, User2 } from "lucide-react"
+import { ChevronsUpDown, Loader2, LogOut, MenuSquareIcon, User2 } from "lucide-react"
 import { ChatUser, User } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

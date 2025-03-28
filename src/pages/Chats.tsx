@@ -227,7 +227,6 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
     const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
     chatChannel.bind('user-typing', ({ userId, isTyping }: { userId: number, isTyping: boolean }) => {
-      console.log("typing status");
       setTypingTxt(isTyping ? 'Typing...' : 'Online');
     });
 
@@ -293,7 +292,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       const response = await axiosInstance.post(`/api/getMessages`, { receiverId: userId });
       if (response.data.status) {
         const messagesData = response.data.data;
-        const updatedMessages: Record<string, Message[]> = { ...messages };
+        const updatedMessages: Record<string, Message[]> = {};
         messagesData.forEach((message: Message) => {
           const messageDate = new Date(message.date).toISOString().split('T')[0];
           if (!updatedMessages[messageDate]) {

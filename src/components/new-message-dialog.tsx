@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "./ui/input"
 import { useEffect, useState } from "react"
 import { User } from "@/types/auth"
-import { CheckIcon, Edit } from "lucide-react"
+import { CheckIcon, Edit, Loader2 } from "lucide-react"
 import axiosInstance from "@/api/axiosInstance"
+import { useChatUsers } from "@/context/UserListContext"
 
 const fetchUsers = async () => {
   try {
@@ -27,6 +28,9 @@ const NewMessageDialog = () => {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<number | null>();
+  const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const { setChatUsers } = useChatUsers();
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -47,8 +51,36 @@ const NewMessageDialog = () => {
     setFilteredUsers(filtered);
   };
 
+  const handleNewMessage = async () => {
+    if (!selectedUser) return;
+  
+    setLoading(true);
+  
+    try {
+      await axiosInstance.post(`/api/sendMessage`, {
+        message: null,
+        receiverId: selectedUser,
+        replyMsgId: null,
+      });
+  
+      // Add the selected user to chatUsers state
+       let filteredSelectedUser = filteredUsers.find(user=> user.id==selectedUser)
+      console.log(filteredSelectedUser)
+      setChatUsers((prev) => {
+      const updatedChatUsers = [...prev, { id: selectedUser, name: filteredSelectedUser?.name, email: filteredSelectedUser?.email, profile: filteredSelectedUser?.profile, isOnline: true }];
+        return updatedChatUsers;
+      });
+  
+      setDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size='icon'>
           <Edit />
@@ -90,8 +122,8 @@ const NewMessageDialog = () => {
               </label>
             ))}
           </div>
-          <Button className="w-full" disabled={!selectedUser}>
-            Continue
+          <Button className="w-full" disabled={!selectedUser || loading} onClick={handleNewMessage}>
+            {loading ? <Loader2 className="animate-spin" /> : "Continue"}
           </Button>
         </div>
       </DialogContent>
