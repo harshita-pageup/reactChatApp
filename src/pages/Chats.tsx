@@ -140,7 +140,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const [sendMsgLoading, setSendMsgLoading] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState(false);
   const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
-  const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline)?'Online':'Offline');
+  const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline)?'Online':'');
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);
@@ -158,12 +158,14 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   };
 
   useEffect(() => {
+    console.log("change typing status");
     updateTypingStatus(isTyping);
   }, [isTyping]);
 
   useEffect(() => {
+    console.log("change user status");
     const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
-    setTypingTxt((userStatus?.isOnline)?'Online':'Offline')
+    setTypingTxt((userStatus?.isOnline)?'Online':'')
   }, [chatUsers]);
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,7 +191,9 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       cluster: 'us2'
     });
     const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
+    console.log("start");
     channel.bind('new-message', ({ message }: { message: Message }) => {
+      console.log("new message");
       let date = new Date().toISOString().split('T')[0];
       setMessages((prev) => {
         const updatedMessages = { ...prev };
@@ -223,6 +227,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
     const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
     chatChannel.bind('user-typing', ({ userId, isTyping }: { userId: number, isTyping: boolean }) => {
+      console.log("typing status");
       setTypingTxt(isTyping ? 'Typing...' : 'Online');
     });
 
@@ -273,7 +278,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         return updatedMessages;
       });
     });
-
+    console.log("end");
     return () => {
       pusher.unsubscribe(`chat.${user!.id}.${selectedUser.id}`);
       pusher.unsubscribe(`chat.${selectedUser.id}`);
