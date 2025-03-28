@@ -33,14 +33,15 @@ const Chats = () => {
 
     // Bind events
     channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
+      console.log("user list");
       Object.keys(members).map((value: string) => {
         let onlineUser = members[value].user as User
         setChatUsers((prev) => {
-          const updatedChatUsers = prev.map((user) => {
-            if (user.id === someId) {
-              return { ...user, name: 'Updated Name' }; // Modify the user object
+          const updatedChatUsers = prev.map((user: any) => {
+            if (user.id === onlineUser.id) {
+              return { ...user, isOnline: true };
             }
-            return user; // Return other users unchanged
+            return user;
           });
           return updatedChatUsers;
         });
@@ -48,11 +49,29 @@ const Chats = () => {
     });
 
     channel.bind('pusher:member_added', (member: any) => {
-      console.log(member);
+      console.log("member added");
+      setChatUsers((prev) => {
+        const updatedChatUsers = prev.map((user: any) => {
+          if (user.id === member.info.user.id) {
+            return { ...user, isOnline: true };
+          }
+          return user;
+        });
+        return updatedChatUsers;
+      });
     });
 
     channel.bind('pusher:member_removed', (member: any) => {
-      console.log(member);
+      console.log("member removed");
+      setChatUsers((prev) => {
+        const updatedChatUsers = prev.map((user: any) => {
+          if (user.id === member.info.user.id) {
+            return { ...user, isOnline: false };
+          }
+          return user;
+        });
+        return updatedChatUsers;
+      });
     });
 
     // Cleanup
@@ -99,7 +118,7 @@ const Chats = () => {
 
       <div className="min-h-screen w-[calc(100%-20rem)]">
         {selectedUser ? (
-          <ChatScreen selectedUser={selectedUser} />
+          <ChatScreen selectedUser={selectedUser} chatUsers={chatUsers} />
         ) : (
           <NotSelectedScreen />
         )}
@@ -109,17 +128,19 @@ const Chats = () => {
 }
 
 type ChatScreenProps = {
-  selectedUser: ChatUser
+  selectedUser: ChatUser,
+  chatUsers: ChatUser[],
 };
 
-function ChatScreen({ selectedUser }: ChatScreenProps) {
+function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const [typeMsg, setTypeMsg] = useState<string>('');
   const [replyMsg, setReplyMsg] = useState<Message | null>(null);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [fetchMsgLoading, setFetchMsgLoading] = useState<boolean>(false);
   const [sendMsgLoading, setSendMsgLoading] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [typingTxt, setTypingTxt] = useState('Online');
+  const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
+  const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline)?'Online':'Offline');
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);
@@ -139,6 +160,11 @@ function ChatScreen({ selectedUser }: ChatScreenProps) {
   useEffect(() => {
     updateTypingStatus(isTyping);
   }, [isTyping]);
+
+  useEffect(() => {
+    const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
+    setTypingTxt((userStatus?.isOnline)?'Online':'Offline')
+  }, [chatUsers]);
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTypeMsg(e.target.value);
