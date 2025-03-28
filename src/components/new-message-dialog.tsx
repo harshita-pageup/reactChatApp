@@ -67,7 +67,7 @@ const NewMessageDialog = () => {
        let filteredSelectedUser = filteredUsers.find(user=> user.id==selectedUser)
       console.log(filteredSelectedUser)
       setChatUsers((prev) => {
-      const updatedChatUsers = [...prev, { id: selectedUser, name: filteredSelectedUser?.name, email: filteredSelectedUser?.email, profile: filteredSelectedUser?.profile, isOnline: true }];
+      const updatedChatUsers = [...prev, { id: selectedUser, name: filteredSelectedUser?.name, email: filteredSelectedUser?.email, profile: filteredSelectedUser?.profile, isOnline: true, lastMsg:null, lastMsgDate: new Date().toISOString().split('T')[0] }];
         return updatedChatUsers;
       });
   
