@@ -12,6 +12,7 @@ import { User } from "@/types/auth"
 import { CheckIcon, Edit, Loader2 } from "lucide-react"
 import axiosInstance from "@/api/axiosInstance"
 import { useChatUsers } from "@/context/UserListContext"
+import { BASE_URL } from "@/api/enviornment"
 
 const fetchUsers = async () => {
   try {
@@ -53,24 +54,24 @@ const NewMessageDialog = () => {
 
   const handleNewMessage = async () => {
     if (!selectedUser) return;
-  
+
     setLoading(true);
-  
+
     try {
       await axiosInstance.post(`/api/sendMessage`, {
         message: null,
         receiverId: selectedUser,
         replyMsgId: null,
       });
-  
+
       // Add the selected user to chatUsers state
-       let filteredSelectedUser = filteredUsers.find(user=> user.id==selectedUser)
+      let filteredSelectedUser = filteredUsers.find(user => user.id == selectedUser)
       console.log(filteredSelectedUser)
       setChatUsers((prev) => {
-      const updatedChatUsers = [...prev, { id: selectedUser, name: filteredSelectedUser?.name, email: filteredSelectedUser?.email, profile: filteredSelectedUser?.profile, isOnline: true, lastMsg:null, lastMsgDate: new Date().toISOString().split('T')[0] }];
+        const updatedChatUsers = [...prev, { id: selectedUser, name: filteredSelectedUser?.name, email: filteredSelectedUser?.email, profile: filteredSelectedUser?.profile, isOnline: true, lastMsg: null, lastMsgDate: new Date().toISOString().split('T')[0] }];
         return updatedChatUsers;
       });
-  
+
       setDialogOpen(false);
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -111,7 +112,7 @@ const NewMessageDialog = () => {
                   className="flex items-center justify-between p-2 hover:bg-zinc-800 rounded-md cursor-pointer peer-checked:bg-zinc-800"
                 >
                   <div className="flex items-center space-x-3">
-                    <img src={user.profile != null ? "http://127.0.0.1:8000/uploads/" + user.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
+                    <img src={user.profile != null ? `${BASE_URL}/uploads/${user.profile}` : `https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`} alt={user.name} className='rounded-lg w-8 h-8' />
                     <div>
                       <p className="text-sm font-medium">{user.name}</p>
                       <p className="text-xs text-gray-500">{user.email}</p>

@@ -17,6 +17,7 @@ import { useUser } from '@/context/UserContext';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
+import { BASE_URL } from '@/api/enviornment';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -70,11 +71,9 @@ const Profile = () => {
           </SidebarFooter>
         </Sidebar>
 
-        <div className='pl-10 pt-20'>
-          {type === 1 && <ProfileComponent />}
-          {type === 2 && <ChangePasswordComponent />}
-          {type === 3 && <DeleteAccountComponent />}
-        </div>
+        {type === 1 && <ProfileComponent />}
+        {type === 2 && <ChangePasswordComponent />}
+        {type === 3 && <DeleteAccountComponent />}
       </SidebarProvider>
       <Toaster />
     </>
@@ -91,7 +90,8 @@ const profileValidationSchema = Yup.object({
 });
 
 function ProfileComponent() {
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [profileImage, setProfileImage] = useState<string>('https://ui-avatars.com/api/?background=222&color=fff&name=GU');
   const [nameState, setNameState] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
@@ -99,27 +99,22 @@ function ProfileComponent() {
   const [completedCrop, setCompletedCrop] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const { user } = useUser();
+  const { user, setUser } = useUser();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axiosInstance.get(`/api/authUser`);
-        if (response.data.data.profile) {
-          setProfileImage("http://127.0.0.1:8000/uploads/" + response.data.data.profile);
-        }
-        else {
-          setProfileImage('https://ui-avatars.com/api/?background=222&color=fff&name=HS');
-        }
-        setNameState(response.data.data.name);
-        setEmail(response.data.data.email);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+    setIsLoading(true)
+    if (user) {
+      if (user.profile) {
+        setProfileImage(`${BASE_URL}/uploads/${user?.profile}`);
       }
-    };
-
-    fetchData();
-  }, []);
+      else {
+        setProfileImage(`https://ui-avatars.com/api/?background=222&color=fff&name=${user.name}`);
+      }
+      setNameState(user.name);
+      setEmail(user.email);
+      setIsLoading(false)
+    }
+  }, [user]);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -200,83 +195,104 @@ function ProfileComponent() {
       };
 
       try {
-        await axiosInstance.post(`/api/updateProfile`, updatedProfile);
-        toast('Profile updated successfully.');
+        await axiosInstance.post(`/api/updateProfile`, updatedProfile).then(res => {
+          if (res.status) {
+            toast('Profile updated successfully.');
+            setUser({
+              ...res.data.data,
+              profile: res.data.data.profile
+            });
+          } else {
+            toast('Something went wrong! Please try again later.')
+            console.error('Error updating profile');
+          }
+        });
       } catch (error) {
         toast('Something went wrong! Please try again later.')
-        console.error("Error updating profile:", error);
+        console.error('Error updating profile:', error);
       }
     },
   });
 
-  return (
-    <div className='flex flex-col gap-4 min-w-lg'>
-      <h1 className='text-4xl font-bold mb-5'>Profile</h1>
-      <div className='relative w-max'>
-        <img src={profileImage ? profileImage : (user?.profile != null ? "http://127.0.0.1:8000/uploads/" + user.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${user?.name ?? 'GU'}`)} className='w-42 h-42 rounded-full object-cover' />
-        <Button
-          size="icon"
-          className='absolute -bottom-0 -right-0 rounded-full'
-          onClick={handleImageClick}
-        >
-          <Camera />
-        </Button>
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-        />
+  if (isLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen w-full gap-2">
+        <Loader2 className="h-12 w-12 animate-spin" />
+        <p className='text-primary animate-pulse'>Loading...</p>
       </div>
+    )
+  }
 
-      <Dialog open={imageToCrop != null} onOpenChange={() => setImageToCrop(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Crop Image</DialogTitle>
-          </DialogHeader>
-          <div className='max-w-[30rem] max-h-[30rem] text-center overflow-auto rounded-md'>
-            <ReactCrop
-              crop={crop}
-              onChange={(_, percentCrop) => setCrop(percentCrop)}
-              onComplete={(c) => setCompletedCrop(c)}
-              aspect={1}
-              circularCrop
-            >
-              {imageToCrop && (
-                <img
-                  ref={imgRef}
-                  src={imageToCrop}
-                  onLoad={onImageLoad}
-                  className="object-cover object-center"
-                />
-              )}
-            </ReactCrop>
-          </div>
-          <div className="flex gap-2 mt-4 justify-end">
-            <Button variant='outline' onClick={() => setImageToCrop(null)}>Cancel</Button>
-            <Button onClick={getCroppedImage}>Crop & Save</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+  return (
+    <div className='pl-10 pt-20'>
+      <div className='flex flex-col gap-4 min-w-lg'>
+        <h1 className='text-4xl font-bold mb-5'>Profile</h1>
+        <div className='relative w-max'>
+          <img src={profileImage} className='w-42 h-42 rounded-full object-cover' />
+          <Button
+            size="icon"
+            className='absolute -bottom-0 -right-0 rounded-full'
+            onClick={handleImageClick}
+          >
+            <Camera />
+          </Button>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </div>
 
-      <form onSubmit={formik.handleSubmit} className='flex flex-col gap-3'>
-        <div className='flex flex-col gap-2'>
-          <label htmlFor="name">Name</label>
-          <Input id='name' placeholder='Name' className='w-full' value={formik.values.name} onChange={formik.handleChange} onBlur={formik.handleBlur} />
-          {formik.errors.name && formik.touched.name && (
-            <ValidationMsg msg={formik.errors.name} />
-          )}
-        </div>
-        <div className='flex flex-col gap-2'>
-          <label htmlFor="email">Email</label>
-          <Input id='email' placeholder='Email' className='w-full' value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur} />
-          {formik.errors.email && formik.touched.email && (
-            <ValidationMsg msg={formik.errors.email} />
-          )}
-        </div>
-        <Button type='submit' className='w-min mt-2'>Submit</Button>
-      </form>
+        <Dialog open={imageToCrop != null} onOpenChange={() => setImageToCrop(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Crop Image</DialogTitle>
+            </DialogHeader>
+            <div className='max-w-[30rem] max-h-[30rem] text-center overflow-auto rounded-md'>
+              <ReactCrop
+                crop={crop}
+                onChange={(_, percentCrop) => setCrop(percentCrop)}
+                onComplete={(c) => setCompletedCrop(c)}
+                aspect={1}
+                circularCrop
+              >
+                {imageToCrop && (
+                  <img
+                    ref={imgRef}
+                    src={imageToCrop}
+                    onLoad={onImageLoad}
+                    className="object-cover object-center"
+                  />
+                )}
+              </ReactCrop>
+            </div>
+            <div className="flex gap-2 mt-4 justify-end">
+              <Button variant='outline' onClick={() => setImageToCrop(null)}>Cancel</Button>
+              <Button onClick={getCroppedImage}>Crop & Save</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <form onSubmit={formik.handleSubmit} className='flex flex-col gap-3'>
+          <div className='flex flex-col gap-2'>
+            <label htmlFor="name">Name</label>
+            <Input id='name' placeholder='Name' className='w-full' value={formik.values.name} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+            {formik.errors.name && formik.touched.name && (
+              <ValidationMsg msg={formik.errors.name} />
+            )}
+          </div>
+          <div className='flex flex-col gap-2'>
+            <label htmlFor="email">Email</label>
+            <Input id='email' placeholder='Email' className='w-full' value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+            {formik.errors.email && formik.touched.email && (
+              <ValidationMsg msg={formik.errors.email} />
+            )}
+          </div>
+          <Button type='submit' className='w-min mt-2'>Submit</Button>
+        </form>
+      </div>
     </div>
   )
 }
@@ -332,38 +348,40 @@ function ChangePasswordComponent() {
   });
 
   return (
-    <div className='flex flex-col gap-4 min-w-lg'>
-      {error && (
-        <AlertMsg msg={error} isSuccess={successMsg} />
-      )}
-      <h1 className='text-4xl font-bold mb-5'>Change Password</h1>
-      <form onSubmit={formik.handleSubmit} className='flex flex-col gap-3'>
-        <div className='flex flex-col gap-2'>
-          <label htmlFor="currentPassword">Current Password</label>
-          <Input id='currentPassword' type='password' placeholder='Current Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.currentPassword} />
-          {formik.errors.currentPassword && formik.touched.currentPassword && (
-            <ValidationMsg msg={formik.errors.currentPassword} />
-          )}
-        </div>
-        <div className='flex flex-col gap-2'>
-          <label htmlFor="newPassword">New Password</label>
-          <Input id='newPassword' type='password' placeholder='New Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.newPassword} />
-          {formik.errors.newPassword && formik.touched.newPassword && (
-            <ValidationMsg msg={formik.errors.newPassword} />
-          )}
-        </div>
-        <div className='flex flex-col gap-2'>
-          <label htmlFor="confirmPassword">Confirm Password</label>
-          <Input id='confirmPassword' type='password' placeholder='Confirm Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.confirmPassword} />
-          {formik.errors.confirmPassword && formik.touched.confirmPassword && (
-            <ValidationMsg msg={formik.errors.confirmPassword} />
-          )}
-        </div>
-        <Button type="submit" className='w-min mt-2' disabled={loading}>
-          {loading && (<Loader2 className="animate-spin" />)}
-          Submit
-        </Button>
-      </form>
+    <div className='pl-10 pt-20'>
+      <div className='flex flex-col gap-4 min-w-lg'>
+        {error && (
+          <AlertMsg msg={error} isSuccess={successMsg} />
+        )}
+        <h1 className='text-4xl font-bold mb-5'>Change Password</h1>
+        <form onSubmit={formik.handleSubmit} className='flex flex-col gap-3'>
+          <div className='flex flex-col gap-2'>
+            <label htmlFor="currentPassword">Current Password</label>
+            <Input id='currentPassword' type='password' placeholder='Current Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.currentPassword} />
+            {formik.errors.currentPassword && formik.touched.currentPassword && (
+              <ValidationMsg msg={formik.errors.currentPassword} />
+            )}
+          </div>
+          <div className='flex flex-col gap-2'>
+            <label htmlFor="newPassword">New Password</label>
+            <Input id='newPassword' type='password' placeholder='New Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.newPassword} />
+            {formik.errors.newPassword && formik.touched.newPassword && (
+              <ValidationMsg msg={formik.errors.newPassword} />
+            )}
+          </div>
+          <div className='flex flex-col gap-2'>
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <Input id='confirmPassword' type='password' placeholder='Confirm Password' className='w-full' onChange={formik.handleChange} onBlur={formik.handleBlur} value={formik.values.confirmPassword} />
+            {formik.errors.confirmPassword && formik.touched.confirmPassword && (
+              <ValidationMsg msg={formik.errors.confirmPassword} />
+            )}
+          </div>
+          <Button type="submit" className='w-min mt-2' disabled={loading}>
+            {loading && (<Loader2 className="animate-spin" />)}
+            Submit
+          </Button>
+        </form>
+      </div>
     </div>
   )
 }
@@ -386,28 +404,30 @@ function DeleteAccountComponent() {
   };
 
   return (
-    <div className='flex flex-col gap-4 max-w-xl'>
-      <h1 className='text-4xl font-bold mb-5'>Delete Account</h1>
-      <p>Once your account is deleted, all of its resources and data will be permanently deleted.
-        Before deleting your account, please download any data or information that you wish to
-        retain.</p>
+    <div className='pl-10 pt-20'>
+      <div className='flex flex-col gap-4 max-w-xl'>
+        <h1 className='text-4xl font-bold mb-5'>Delete Account</h1>
+        <p>Once your account is deleted, all of its resources and data will be permanently deleted.
+          Before deleting your account, please download any data or information that you wish to
+          retain.</p>
 
-      <Dialog open={showConfirm} onOpenChange={() => setShowConfirm(false)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are you absolutely sure?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. Are you sure you want to permanently
-              delete your account from our servers?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setShowConfirm(false)}>Cancel</Button>
-            <Button onClick={handleDeleteAccount}>Confirm</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Button variant='destructive' className='w-min mt-2' onClick={() => setShowConfirm(true)}>Delete Account</Button>
+        <Dialog open={showConfirm} onOpenChange={() => setShowConfirm(false)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Are you absolutely sure?</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. Are you sure you want to permanently
+                delete your account from our servers?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant='outline' onClick={() => setShowConfirm(false)}>Cancel</Button>
+              <Button variant='destructive' onClick={handleDeleteAccount}>Confirm</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <Button variant='destructive' className='w-min mt-2' onClick={() => setShowConfirm(true)}>Delete Account</Button>
+      </div>
     </div>
   )
 }

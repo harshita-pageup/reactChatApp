@@ -444,7 +444,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     <>
       <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
         <div className="flex items-center gap-4">
-          <img src={selectedUser.profile != null ? "http://127.0.0.1:8000/uploads/" + selectedUser.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${selectedUser.name}`} className='w-12 h-12 rounded-full object-cover' />
+          <img src={selectedUser.profile != null ? `${BASE_URL}/uploads/${selectedUser.profile}` : `https://ui-avatars.com/api/?background=222&color=fff&name=${selectedUser.name}`} className='w-12 h-12 rounded-full object-cover' />
           <div className="flex flex-col justify-center">
             <p className="text-md line-clamp-1 font-bold transition-all">{selectedUser.name}</p>
             <p className="text-xs">{typingTxt}</p>
@@ -465,7 +465,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         {fetchMsgLoading && (
           <div className="flex flex-col justify-center items-center h-full gap-2">
             <Loader2 className="h-12 w-12 animate-spin" />
-            <p className='text-primary'>Loading the messages...</p>
+            <p className='text-primary animate-pulse'>Loading the messages...</p>
           </div>
         )}
         {!fetchMsgLoading && Object.entries(messages).map(([date, dateMessages], index) => (
