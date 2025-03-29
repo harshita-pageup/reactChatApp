@@ -150,9 +150,8 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     cluster: PUSHER_APP_CLUSTER
   });
 
-  // Function to call the typingStatus API
   const updateTypingStatus = async (typing: boolean) => {
-    
+    console.log('Entered into ChatScreen::updateTypingStatus');
     try {
       await axiosInstance.post('/api/typingStatus', {
         userId: user!.id,
@@ -160,16 +159,18 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       });
     } catch (error) {
       console.log('Error in ChatScreen::updateTypingStatus ->', error);
+    } finally {
+      console.log('Exited from ChatScreen::updateTypingStatus');
     }
   };
 
   useEffect(() => {
-    console.log("change typing status");
+    console.log('Updating the typeing status.')
     updateTypingStatus(isTyping);
   }, [isTyping]);
 
   useEffect(() => {
-    console.log("change user status");
+    console.log('Changing the user status');
     const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
     setTypingTxt((userStatus?.isOnline) ? 'online' : '')
   }, [chatUsers]);
@@ -189,14 +190,12 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     return () => clearTimeout(typingTimeout);
   };
 
-  // Initialize Pusher
   useEffect(() => {
     if (!selectedUser) return;
 
     const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
-    console.log("start");
     channel.bind('new-message', ({ message }: { message: Message }) => {
-      console.log("new message");
+      console.log('Pusher: Updating the new message.');
       let date = new Date().toISOString().split('T')[0];
       setMessages((prev) => {
         const updatedMessages = { ...prev };
@@ -229,16 +228,15 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     });
 
     const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
-    chatChannel.bind('user-typing', ({ userId, isTyping }: { userId: number, isTyping: boolean }) => {
-      console.log('typing...');
+    chatChannel.bind('user-typing', ({ isTyping }: { userId: number, isTyping: boolean }) => {
+      console.log('Pusher: Updating the typing status.');
       setTypingTxt(isTyping ? 'typing...' : 'online');
     });
 
     const reactionChannel = pusher.subscribe(`reaction.${user!.id}.${selectedUser.id}`);
-    // Listen for new reaction event
     reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User }) => {
+      console.log('Pusher: Updating the reaction of the message.')
       let date = new Date().toISOString().split('T')[0];
-      console.log(data)
       setMessages((prev) => {
         const updatedMessages = { ...prev };
         const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === data.messageId);
@@ -281,7 +279,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         return updatedMessages;
       });
     });
-    console.log("end");
+
     return () => {
       pusher.unsubscribe(`chat.${user!.id}.${selectedUser.id}`);
       pusher.unsubscribe(`chat.${selectedUser.id}`);
@@ -462,7 +460,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         </div>
       </div>
 
-      <div className="flex flex-col px-10 gap-2 py-20 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed h-full relative">
+      <div className={`flex flex-col px-10 gap-2 pt-18 pb-16 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed h-full relative ${replyMsg ? 'mb-12' : ''}`}>
         <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60 z-0"></div>
         {fetchMsgLoading && (
           <div className="flex flex-col justify-center items-center h-full gap-2">
