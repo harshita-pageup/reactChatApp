@@ -236,10 +236,10 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       setTypingTxt(isTyping ? 'typing...' : 'online');
     });
 
-    const reactionChannel = pusher.subscribe(`reaction.${user!.id}.${selectedUser.id}`);
-    reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User }) => {
+    const reactionChannel = pusher.subscribe(`reaction.${selectedUser.id}`);
+    reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User, date: string }) => {
       console.log('Pusher: Updating the reaction of the message.')
-      let date = new Date().toISOString().split('T')[0];
+      let date = data.date;
       setMessages((prev) => {
         const updatedMessages = { ...prev };
         const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === data.messageId);
@@ -286,7 +286,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     return () => {
       pusher.unsubscribe(`chat.${user!.id}.${selectedUser.id}`);
       pusher.unsubscribe(`chat.${selectedUser.id}`);
-      pusher.unsubscribe(`reaction.${user!.id}.${selectedUser.id}`);
+      pusher.unsubscribe(`reaction.${selectedUser.id}`);
     };
   }, [selectedUser]);
 
@@ -299,7 +299,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         const messagesData = response.data.data;
         const updatedMessages: Record<string, Message[]> = {};
         messagesData.forEach((message: Message) => {
-          const messageDate = new Date(message.date).toISOString().split('T')[0];
+          const messageDate = message.date.split(' ')[0];
           if (!updatedMessages[messageDate]) {
             updatedMessages[messageDate] = [];
           }
@@ -381,7 +381,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const addReaction = async (reaction: string, message: Message) => {
     console.log('Entered into ChatScreen::addReaction');
     try {
-      let date = new Date(message.date).toISOString().split('T')[0];
+      let date = message.date.split(' ')[0];
 
       try {
         const response = await axiosInstance.post('/api/storeReaction', {
@@ -444,7 +444,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   }
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: any) => {
       if (emojieDivRef.current && !emojieDivRef.current.contains(event.target)) {
         setShowEmojiPicker(false);
       }
