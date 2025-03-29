@@ -12,6 +12,7 @@ import Pusher from 'pusher-js';
 import { getToken } from '@/utils/auth';
 import { useChatUsers } from '@/context/UserListContext';
 import { BASE_URL, PUSHER_APP_CLUSTER, PUSHER_APP_KEY } from '@/api/enviornment';
+import EmojiPicker, { Theme } from 'emoji-picker-react';
 
 const Chats = () => {
   const { chatUsers, setChatUsers } = useChatUsers();
@@ -142,6 +143,8 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const [isTyping, setIsTyping] = useState(false);
   const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
   const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline) ? 'online' : '');
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
+  const emojieDivRef = useRef(null);
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);
@@ -440,6 +443,18 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     }
   }
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojieDivRef.current && !emojieDivRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <>
       <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
@@ -512,10 +527,13 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
           onSubmit={handleSendMessage}
           className="flex justify-center items-center px-4 h-14"
         >
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" type='button'>
             <Paperclip />
           </Button>
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" type='button' className='relative ml-1.5' onClick={() => { if (!showEmojiPicker) setShowEmojiPicker(true) }}>
+            <div ref={emojieDivRef} className="absolute bottom-12 left-0">
+              <EmojiPicker open={showEmojiPicker} theme={Theme.DARK} previewConfig={{ showPreview: false }} onEmojiClick={(event) => setTypeMsg(typeMsg + event.emoji)} />
+            </div>
             <SmilePlus />
           </Button>
           <Input
@@ -524,8 +542,8 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
             value={typeMsg}
             onChange={handleTyping}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) { // Allow Shift+Enter for new lines
-                e.preventDefault(); // Prevent default Enter behavior
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
                 handleSendMessage();
               }
             }}
