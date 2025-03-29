@@ -264,10 +264,10 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
               {
                 emojie: data.emojie,
                 user: {
-                  id: user!.id,
-                  name: user!.name,
-                  email: user!.email,
-                  profile: user!.profile || '',
+                  id: data.user!.id,
+                  name: data.user!.name,
+                  email: data.user!.email,
+                  profile: data.user!.profile || '',
                   isOnline: false
                 },
               },
