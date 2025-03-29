@@ -144,7 +144,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
   const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline) ? 'online' : '');
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
-  const emojieDivRef = useRef(null);
+  const emojieDivRef = useRef<HTMLDivElement>(null);
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);

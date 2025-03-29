@@ -3,7 +3,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 
 interface UserListContextType {
     chatUsers: ChatUser[];
-    setChatUsers: (user: ChatUser[]) => void;
+    setChatUsers: React.Dispatch<React.SetStateAction<ChatUser[]>>;
 }
 
 const UserListContext = createContext<UserListContextType | undefined>(undefined);
