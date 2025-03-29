@@ -11,15 +11,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
 import { getToken } from '@/utils/auth';
 import { useChatUsers } from '@/context/UserListContext';
+import { BASE_URL, PUSHER_APP_CLUSTER, PUSHER_APP_KEY } from '@/api/enviornment';
 
 const Chats = () => {
   const { chatUsers, setChatUsers } = useChatUsers();
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
   const [fetchListLoading, setFetchListLoading] = useState<boolean>(true);
 
-  const pusher = new Pusher('154cebd158bd69a4aa80', {
-    cluster: 'us2',
-    authEndpoint: 'http://127.0.0.1:8000/api/pusher/auth',
+  const pusher = new Pusher(PUSHER_APP_KEY, {
+    cluster: PUSHER_APP_CLUSTER,
+    authEndpoint: `${BASE_URL}/api/pusher/auth`,
     auth: {
       headers: {
         'Authorization': `Bearer ${getToken()}`,
@@ -140,13 +141,18 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const [sendMsgLoading, setSendMsgLoading] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState(false);
   const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
-  const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline)?'Online':'');
+  const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline) ? 'online' : '');
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);
 
+  const pusher = new Pusher(PUSHER_APP_KEY, {
+    cluster: PUSHER_APP_CLUSTER
+  });
+
   // Function to call the typingStatus API
   const updateTypingStatus = async (typing: boolean) => {
+    
     try {
       await axiosInstance.post('/api/typingStatus', {
         userId: user!.id,
@@ -165,7 +171,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   useEffect(() => {
     console.log("change user status");
     const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
-    setTypingTxt((userStatus?.isOnline)?'Online':'')
+    setTypingTxt((userStatus?.isOnline) ? 'online' : '')
   }, [chatUsers]);
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,9 +193,6 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   useEffect(() => {
     if (!selectedUser) return;
 
-    const pusher = new Pusher('154cebd158bd69a4aa80', {
-      cluster: 'us2'
-    });
     const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
     console.log("start");
     channel.bind('new-message', ({ message }: { message: Message }) => {
@@ -227,7 +230,8 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
     const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
     chatChannel.bind('user-typing', ({ userId, isTyping }: { userId: number, isTyping: boolean }) => {
-      setTypingTxt(isTyping ? 'Typing...' : 'Online');
+      console.log('typing...');
+      setTypingTxt(isTyping ? 'typing...' : 'online');
     });
 
     const reactionChannel = pusher.subscribe(`reaction.${user!.id}.${selectedUser.id}`);
@@ -442,7 +446,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     <>
       <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
         <div className="flex items-center gap-4">
-          <img src={selectedUser.profile != null ? "http://127.0.0.1:8000/uploads/" + selectedUser.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${selectedUser.name}`} className='w-14 h-14 rounded-full object-cover' />
+          <img src={selectedUser.profile != null ? "http://127.0.0.1:8000/uploads/" + selectedUser.profile : `https://ui-avatars.com/api/?background=222&color=fff&name=${selectedUser.name}`} className='w-12 h-12 rounded-full object-cover' />
           <div className="flex flex-col justify-center">
             <p className="text-md line-clamp-1 font-bold transition-all">{selectedUser.name}</p>
             <p className="text-xs">{typingTxt}</p>
