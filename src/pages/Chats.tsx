@@ -141,6 +141,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline) ? 'online' : '');
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const emojieDivRef = useRef<HTMLDivElement>(null);
+  const { setChatUsers } = useChatUsers();
   const [lastMsgDate, setLastMsgDate] = useState<string>('');
 
   const { user } = useUser();
@@ -355,6 +356,16 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
           ];
           return updatedMessages;
         });
+
+        setChatUsers((prev) => {
+          const updatedChatUsers = prev.map((user) => {
+            if (user.id === selectedUser.id) {
+              return { ...user, lastMsg: message, lastMsgDate: new Date().toLocaleString('sv') };
+            }
+            return user;
+          });
+          return updatedChatUsers;
+        })
 
         setTypeMsg('');
         setReplyMsg(null);
