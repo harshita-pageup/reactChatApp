@@ -166,12 +166,11 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   };
 
   useEffect(() => {
-    console.log('Updating the typeing status.')
+    console.log('Pusher: Updating the typing status.')
     updateTypingStatus(isTyping);
   }, [isTyping]);
 
   useEffect(() => {
-    console.log('Changing the user status');
     const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
     setTypingTxt((userStatus?.isOnline) ? 'online' : '')
   }, [chatUsers]);
@@ -183,7 +182,6 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       setIsTyping(true);
     }
 
-    // Stop typing after a delay
     const typingTimeout = setTimeout(() => {
       setIsTyping(false);
     }, 2000);
