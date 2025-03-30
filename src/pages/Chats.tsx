@@ -33,6 +33,7 @@ const Chats = () => {
     const channel = pusher.subscribe('presence-chat');
 
     channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
+      console.log('Pusher: Subscription succeeded.');
       Object.keys(members).map((value: string) => {
         let onlineUser = members[value].user as User
         setChatUsers((prev) => {
@@ -48,7 +49,7 @@ const Chats = () => {
     });
 
     channel.bind('pusher:member_added', (member: any) => {
-      console.log("member added");
+      console.log('Pusher: New member added.');
       setChatUsers((prev) => {
         const updatedChatUsers = prev.map((user: any) => {
           if (user.id === member.info.user.id) {
@@ -61,7 +62,7 @@ const Chats = () => {
     });
 
     channel.bind('pusher:member_removed', (member: any) => {
-      console.log("member removed");
+      console.log('Pusher: Member removed.');
       setChatUsers((prev) => {
         const updatedChatUsers = prev.map((user: any) => {
           if (user.id === member.info.user.id) {
@@ -173,7 +174,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   useEffect(() => {
     const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
     setTypingTxt((userStatus?.isOnline) ? 'online' : '')
-  }, [chatUsers]);
+  }, [userStatus]);
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTypeMsg(e.target.value);
