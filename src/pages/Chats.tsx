@@ -180,18 +180,29 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     setTypingTxt((userStatus?.isOnline) ? 'online' : '')
   }, [userStatus]);
 
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTypeMsg(e.target.value);
 
-    if (!isTyping) {
-      setIsTyping(true);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
 
-    const typingTimeout = setTimeout(() => {
+    if (!isTyping) {
+      setIsTyping(true);
+      updateTypingStatus(true);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
+      updateTypingStatus(false);
     }, 2000);
 
-    return () => clearTimeout(typingTimeout);
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
   };
 
   useEffect(() => {
