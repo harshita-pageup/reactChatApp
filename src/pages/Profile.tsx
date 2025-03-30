@@ -91,6 +91,7 @@ const profileValidationSchema = Yup.object({
 
 function ProfileComponent() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [submitLoading, setSubmitLoading] = useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string>('https://ui-avatars.com/api/?background=222&color=fff&name=GU');
   const [nameState, setNameState] = useState<string>('');
   const [email, setEmail] = useState<string>('');
@@ -188,6 +189,7 @@ function ProfileComponent() {
     },
     validationSchema: profileValidationSchema,
     onSubmit: async (values) => {
+      setSubmitLoading(true);
       const updatedProfile = {
         name: values.name,
         email: values.email,
@@ -210,6 +212,8 @@ function ProfileComponent() {
       } catch (error) {
         toast('Something went wrong! Please try again later.')
         console.error('Error updating profile:', error);
+      } finally {
+        setSubmitLoading(false);
       }
     },
   });
@@ -290,7 +294,10 @@ function ProfileComponent() {
               <ValidationMsg msg={formik.errors.email} />
             )}
           </div>
-          <Button type='submit' className='w-min mt-2'>Submit</Button>
+          <Button type='submit' className='w-min mt-2' disabled={submitLoading}>
+            {submitLoading && (<Loader2 className="animate-spin" />)}
+            Save
+          </Button>
         </form>
       </div>
     </div>
