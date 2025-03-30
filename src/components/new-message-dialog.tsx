@@ -64,7 +64,6 @@ const NewMessageDialog = () => {
         replyMsgId: null,
       });
 
-      // Add the selected user to chatUsers state
       let filteredSelectedUser = filteredUsers.find(user => user.id == selectedUser)
       setChatUsers((prev) => {
         const updatedChatUsers = [
@@ -76,7 +75,7 @@ const NewMessageDialog = () => {
             profile: filteredSelectedUser!.profile,
             isOnline: true,
             lastMsg: '',
-            lastMsgDate: new Date().toISOString().split('T')[0]
+            lastMsgDate: new Date().toLocaleString('sv')
           }];
         return updatedChatUsers;
       });

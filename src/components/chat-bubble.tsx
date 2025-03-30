@@ -105,9 +105,9 @@ type ChatTimestampProps = { date: string }
 function ChatTimestamp({ date }: ChatTimestampProps) {
   return (
     <span className="text-xs text-gray-400 absolute bottom-0.5 right-2">
-      {new Date(date).toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
+      {new Date(date).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
         hour12: false
       })}
     </span>

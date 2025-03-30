@@ -30,12 +30,9 @@ const Chats = () => {
   });
 
   useEffect(() => {
-    // Subscribe to presence channel
     const channel = pusher.subscribe('presence-chat');
 
-    // Bind events
     channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
-      console.log("user list");
       Object.keys(members).map((value: string) => {
         let onlineUser = members[value].user as User
         setChatUsers((prev) => {
@@ -76,7 +73,6 @@ const Chats = () => {
       });
     });
 
-    // Cleanup
     return () => {
       pusher.unsubscribe('presence-chat');
     };
@@ -145,6 +141,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline) ? 'online' : '');
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const emojieDivRef = useRef<HTMLDivElement>(null);
+  const [lastMsgDate, setLastMsgDate] = useState<string>('');
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);
@@ -196,10 +193,12 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   useEffect(() => {
     if (!selectedUser) return;
 
+    fetchMessages(selectedUser.id);
+
     const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
     channel.bind('new-message', ({ message }: { message: Message }) => {
       console.log('Pusher: Updating the new message.');
-      let date = new Date().toISOString().split('T')[0];
+      let date = new Date().toLocaleString('sv').split(' ')[0];
       setMessages((prev) => {
         const updatedMessages = { ...prev };
         if (!updatedMessages[date]) {
@@ -318,16 +317,6 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     }
   }
 
-  useEffect(() => {
-    if (selectedUser) {
-      fetchMessages(selectedUser.id);
-    }
-  }, [selectedUser]);
-
-  useEffect(() => {
-    chatRef.current?.scrollIntoView();
-  }, [selectedUser, messages]);
-
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (typeMsg.trim()) {
@@ -340,7 +329,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     console.log('Entered into ChatScreen::addMessage');
     try {
       setSendMsgLoading(true);
-      let date = new Date().toISOString().split('T')[0];
+      let date = new Date().toLocaleString('sv').split(' ')[0];
       let replyMsgId = replyMsg?.id
       const response = await axiosInstance.post(`/api/sendMessage`, { message, receiverId, replyMsgId });
       if (response.data.status) {
@@ -361,7 +350,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
               isSender: true,
               replyTo: replyMsg,
               reactions: [],
-              date: new Date().toISOString(),
+              date: new Date().toLocaleString('sv'),
             },
           ];
           return updatedMessages;
@@ -381,7 +370,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const addReaction = async (reaction: string, message: Message) => {
     console.log('Entered into ChatScreen::addReaction');
     try {
-      let date = message.date.split(' ')[0];
+      let date = message.date.includes('T') ? message.date.split('T')[0] : message.date.split(' ')[0];
 
       try {
         const response = await axiosInstance.post('/api/storeReaction', {
@@ -396,7 +385,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
             if (messageToUpdate) {
               const existingReactionIndex = messageToUpdate.reactions.findIndex(
-                (r) => r.user.email === user!.email
+                (r) => r.user.id === user!.id
               );
 
               if (existingReactionIndex !== -1) {
@@ -444,6 +433,17 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   }
 
   useEffect(() => {
+    const lastDateObj = messages[Object.keys(messages)[Object.keys(messages).length-1]];
+    if (lastDateObj) {
+      let lastDate = lastDateObj[lastDateObj.length-1];
+      if (lastMsgDate !== undefined && lastMsgDate !== lastDate.date && (lastDate.isSender || lastMsgDate === '')) {
+        chatRef.current?.scrollIntoView();
+      }
+      setLastMsgDate(lastDate.date)
+    }
+  }, [messages]);
+
+  useEffect(() => {
     const handleClickOutside = (event: any) => {
       if (emojieDivRef.current && !emojieDivRef.current.contains(event.target)) {
         setShowEmojiPicker(false);
@@ -486,11 +486,11 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         {!fetchMsgLoading && Object.entries(messages).map(([date, dateMessages], index) => (
           <div key={index} className='flex flex-col gap-2'>
             <div className="text-center text-xs my-1.5 bg-zinc-500 w-min text-nowrap py-1 px-2 rounded-md text-white mx-auto">
-              {new Date(date).toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
+              {new Date(date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
               })}
             </div>
             {dateMessages.map((message) => (

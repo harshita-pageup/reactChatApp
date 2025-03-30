@@ -72,7 +72,11 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
                 <p className="text-muted">No users found</p>
               </SidebarMenuItem>
             )}
-            {!isLoading && filteredUsers.map((item) => (
+            {!isLoading && filteredUsers.sort((a, b) => {
+              const dateA = new Date(a.lastMsgDate);
+              const dateB = new Date(b.lastMsgDate);
+              return dateB.getTime() - dateA.getTime();
+            }).map((item) => (
               <SidebarMenuItem key={item.id} onClick={() => setSelectedUser(item)}>
                 <SidebarMenuButton asChild>
                   <UserCard chatUser={item} isSelected={item.id === selectedUser?.id} />
@@ -91,7 +95,6 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
 }
 
 function ProfileDropDown() {
-
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
