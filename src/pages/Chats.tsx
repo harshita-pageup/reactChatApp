@@ -18,6 +18,7 @@ const Chats = () => {
   const { chatUsers, setChatUsers } = useChatUsers();
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
   const [fetchListLoading, setFetchListLoading] = useState<boolean>(true);
+  const { user } = useUser();
 
   const pusher = new Pusher(PUSHER_APP_KEY, {
     cluster: PUSHER_APP_CLUSTER,
@@ -76,8 +77,11 @@ const Chats = () => {
 
     return () => {
       pusher.unsubscribe('presence-chat');
+      if (user) {
+        pusher.unsubscribe(`newMessage.${user!.id}`);
+      }
     };
-  }, []);
+  }, [user]);
 
   const fetchChatUsers = async () => {
     setFetchListLoading(true);
@@ -443,9 +447,9 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   }
 
   useEffect(() => {
-    const lastDateObj = messages[Object.keys(messages)[Object.keys(messages).length-1]];
+    const lastDateObj = messages[Object.keys(messages)[Object.keys(messages).length - 1]];
     if (lastDateObj) {
-      let lastDate = lastDateObj[lastDateObj.length-1];
+      let lastDate = lastDateObj[lastDateObj.length - 1];
       if (lastMsgDate !== undefined && lastMsgDate !== lastDate.date && (lastDate.isSender || lastMsgDate === '')) {
         chatRef.current?.scrollIntoView();
       }

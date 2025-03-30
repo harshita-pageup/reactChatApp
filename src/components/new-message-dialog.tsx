@@ -63,24 +63,30 @@ const NewMessageDialog = () => {
         receiverId: selectedUser,
         replyMsgId: null,
       });
+      const updatedFilteredUsers = filteredUsers.filter(user => user.id !== selectedUser);
+      const updatedUsers = users.filter(user => user.id !== selectedUser);
 
-      let filteredSelectedUser = filteredUsers.find(user => user.id == selectedUser)
-      setChatUsers((prev) => {
-        const updatedChatUsers = [
+      setFilteredUsers(updatedFilteredUsers);
+      setUsers(updatedUsers);
+
+      const filteredSelectedUser = filteredUsers.find(user => user.id === selectedUser);
+      if (filteredSelectedUser) {
+        setChatUsers((prev) => [
           ...prev,
           {
             id: selectedUser,
-            name: filteredSelectedUser!.name,
-            email: filteredSelectedUser!.email,
-            profile: filteredSelectedUser!.profile,
+            name: filteredSelectedUser.name,
+            email: filteredSelectedUser.email,
+            profile: filteredSelectedUser.profile,
             isOnline: true,
             lastMsg: '',
-            lastMsgDate: new Date().toLocaleString('sv')
-          }];
-        return updatedChatUsers;
-      });
+            lastMsgDate: new Date().toLocaleString('sv'),
+          }
+        ]);
+      }
 
       setDialogOpen(false);
+      setSelectedUser(null);
     } catch (error) {
       console.error("Failed to send message:", error);
     } finally {
