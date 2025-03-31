@@ -49,8 +49,11 @@ export function Login() {
           setError(response.data.msg);
         }
       } catch (error: any) {
+        if(error.response.data.msg)
+          setError(error.response.data.msg);
+        else
+          setError(error?.message || "An unknown error occurred.");
         console.log('Error in Login::onSubmit ->', error);
-        setError(error?.message || "An unknown error occurred.");
       } finally {
         console.log('Exited from Login::onSubmit');
         setLoading(false);
