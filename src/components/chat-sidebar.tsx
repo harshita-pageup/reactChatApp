@@ -26,16 +26,17 @@ type ChatSidebarProps = {
   selectedUser: ChatUser | null,
   setSelectedUser: (user: ChatUser | null) => void,
   isLoading: boolean,
-  loadMoreRef: React.RefObject<HTMLDivElement>,
-  hasMore: boolean
+  loadMoreRef: React.RefObject<HTMLDivElement | null>,
+  hasMore: boolean,
+  searchQuery: string | null,
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoading, loadMoreRef, hasMore }: ChatSidebarProps) {
+export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoading, loadMoreRef, hasMore, searchQuery, setSearchQuery }: ChatSidebarProps) {
   const { state } = useSidebar();
-  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const filteredUsers = chatUsers.filter((user) =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+    user.name.toLowerCase().includes((searchQuery??"").toLowerCase())
   );
 
   return (
@@ -54,7 +55,7 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
           type="text"
           placeholder="Search"
           className="rounded-full"
-          value={searchQuery}
+          value={searchQuery??""}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </SidebarHeader>
@@ -84,7 +85,6 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
-            {isLoading && <Loader2 className="h-6 w-6 animate-spin mx-auto" />}
             {hasMore && !isLoading && <div ref={loadMoreRef} className="h-1"></div>}
           </SidebarMenu>
         </SidebarGroup>
