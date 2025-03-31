@@ -18,7 +18,11 @@ const Chats = () => {
   const { chatUsers, setChatUsers } = useChatUsers();
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
   const [fetchListLoading, setFetchListLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
   const { user } = useUser();
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const pusher = new Pusher(PUSHER_APP_KEY, {
     cluster: PUSHER_APP_CLUSTER,
@@ -31,70 +35,74 @@ const Chats = () => {
   });
 
   useEffect(() => {
-    const channel = pusher.subscribe('presence-chat');
+    // const channel = pusher.subscribe('presence-chat');
 
-    channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
-      console.log('Pusher: Subscription succeeded.');
-      Object.keys(members).map((value: string) => {
-        let onlineUser = members[value].user as User
-        setChatUsers((prev) => {
-          const updatedChatUsers = prev.map((user: any) => {
-            if (user.id === onlineUser.id) {
-              return { ...user, isOnline: true };
-            }
-            return user;
-          });
-          return updatedChatUsers;
-        });
-      })
-    });
+    // channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
+    //   console.log('Pusher: Subscription succeeded.');
+    //   Object.keys(members).map((value: string) => {
+    //     let onlineUser = members[value].user as User
+    //     setChatUsers((prev) => {
+    //       const updatedChatUsers = prev.map((user: any) => {
+    //         if (user.id === onlineUser.id) {
+    //           return { ...user, isOnline: true };
+    //         }
+    //         return user;
+    //       });
+    //       return updatedChatUsers;
+    //     });
+    //   })
+    // });
 
-    channel.bind('pusher:member_added', (member: any) => {
-      console.log('Pusher: New member added.');
-      setChatUsers((prev) => {
-        const updatedChatUsers = prev.map((user: any) => {
-          if (user.id === member.info.user.id) {
-            return { ...user, isOnline: true };
-          }
-          return user;
-        });
-        return updatedChatUsers;
-      });
-    });
+    // channel.bind('pusher:member_added', (member: any) => {
+    //   console.log('Pusher: New member added.');
+    //   setChatUsers((prev) => {
+    //     const updatedChatUsers = prev.map((user: any) => {
+    //       if (user.id === member.info.user.id) {
+    //         return { ...user, isOnline: true };
+    //       }
+    //       return user;
+    //     });
+    //     return updatedChatUsers;
+    //   });
+    // });
 
-    channel.bind('pusher:member_removed', (member: any) => {
-      console.log('Pusher: Member removed.');
-      setChatUsers((prev) => {
-        const updatedChatUsers = prev.map((user: any) => {
-          if (user.id === member.info.user.id) {
-            return { ...user, isOnline: false };
-          }
-          return user;
-        });
-        return updatedChatUsers;
-      });
-    });
+    // channel.bind('pusher:member_removed', (member: any) => {
+    //   console.log('Pusher: Member removed.');
+    //   setChatUsers((prev) => {
+    //     const updatedChatUsers = prev.map((user: any) => {
+    //       if (user.id === member.info.user.id) {
+    //         return { ...user, isOnline: false };
+    //       }
+    //       return user;
+    //     });
+    //     return updatedChatUsers;
+    //   });
+    // });
 
     return () => {
-      pusher.unsubscribe('presence-chat');
+      // pusher.unsubscribe('presence-chat');
       if (user) {
         pusher.unsubscribe(`newMessage.${user!.id}`);
       }
     };
   }, [user]);
 
-  const fetchChatUsers = async () => {
+  const fetchChatUsers = async (pageNum: number, append: boolean = false) => {
     setFetchListLoading(true);
-    console.log('Entered into Chats::fetchChatUsers');
     try {
-      const response = await axiosInstance.post(`/api/users`, { page: 1, perPage: 15 });
+      const response = await axiosInstance.post(`/api/users`, { page: pageNum, perPage: 15 });
       const data = response.data.data.data;
-      setChatUsers(data);
+      const total = response.data.data.total;
+      if (append) {
+        setChatUsers((prev) => [...prev, ...data]);
+      } else {
+        setChatUsers(data);
+      }
+      setHasMore(pageNum * 15 < total);
     } catch (error) {
       console.log('Error in Chats::fetchChatUsers ->', error);
     } finally {
       setFetchListLoading(false);
-      console.log('Exited from Chats::fetchChatUsers');
     }
   };
 
@@ -112,12 +120,36 @@ const Chats = () => {
   }, [escFunction]);
 
   useEffect(() => {
-    fetchChatUsers();
+    fetchChatUsers(page);
   }, []);
+
+  useEffect(() => {
+    if (!hasMore || fetchListLoading) return;
+
+    observerRef.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setPage((prev) => {
+          const nextPage = prev + 1;
+          fetchChatUsers(nextPage, true);
+          return nextPage;
+        });
+      }
+    });
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current!);
+    }
+
+    return () => {
+      if (observerRef.current && loadMoreRef.current) {
+        observerRef.current.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [hasMore, fetchListLoading]);
 
   return (
     <SidebarProvider>
-      <ChatSidebar chatUsers={chatUsers} selectedUser={selectedUser} setSelectedUser={setSelectedUser} isLoading={fetchListLoading} />
+      <ChatSidebar chatUsers={chatUsers} selectedUser={selectedUser} setSelectedUser={setSelectedUser} isLoading={fetchListLoading} loadMoreRef={loadMoreRef} hasMore={hasMore} />
 
       <div className="min-h-screen w-[calc(100%-20rem)]">
         {selectedUser ? (

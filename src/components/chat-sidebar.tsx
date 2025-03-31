@@ -24,15 +24,16 @@ import { BASE_URL } from "@/api/enviornment";
 type ChatSidebarProps = {
   chatUsers: ChatUser[],
   selectedUser: ChatUser | null,
-  setSelectedUser: (user: ChatUser) => void,
-  isLoading: boolean
+  setSelectedUser: (user: ChatUser | null) => void,
+  isLoading: boolean,
+  loadMoreRef: React.RefObject<HTMLDivElement>,
+  hasMore: boolean
 }
 
-export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoading }: ChatSidebarProps) {
+export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoading, loadMoreRef, hasMore }: ChatSidebarProps) {
   const { state } = useSidebar();
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Filter chat users based on the search query
   const filteredUsers = chatUsers.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -83,6 +84,8 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+            {isLoading && <Loader2 className="h-6 w-6 animate-spin mx-auto" />}
+            {hasMore && !isLoading && <div ref={loadMoreRef} className="h-1"></div>}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
