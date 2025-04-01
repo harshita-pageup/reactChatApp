@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useUser } from '@/context/UserContext';
 import { ChatUser, Message, User } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, Video, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Pusher from 'pusher-js';
 import { useChatUsers } from '@/context/UserListContext';
 import { BASE_URL, PUSHER_APP_CLUSTER, PUSHER_APP_KEY } from '@/api/enviornment';
@@ -26,12 +26,16 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
   const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline) ? 'online' : '');
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
   const emojieDivRef = useRef<HTMLDivElement>(null);
   const { setChatUsers } = useChatUsers();
   const [lastMsgDate, setLastMsgDate] = useState<string>('');
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const pusher = new Pusher(PUSHER_APP_KEY, {
     cluster: PUSHER_APP_CLUSTER
@@ -89,7 +93,9 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   useEffect(() => {
     if (!selectedUser) return;
 
-    fetchMessages(selectedUser.id);
+    setMessages({});
+    setPage(1);
+    fetchMessages(selectedUser.id, page);
 
     const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
     channel.bind('new-message', ({ message }: { message: Message }) => {
@@ -185,14 +191,14 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     };
   }, [selectedUser]);
 
-  const fetchMessages = async (userId: number) => {
+  const fetchMessages = async (userId: number, pageNum: number) => {
     setFetchMsgLoading(true);
     console.log('Entered into ChatScreen::fetchMessages');
     try {
-      const response = await axiosInstance.post(`/api/getMessages`, { receiverId: userId });
+      const response = await axiosInstance.post(`/api/getMessages`, { receiverId: userId, page: pageNum, limit: 20 });
       if (response.data.status) {
         const messagesData = response.data.data;
-        const updatedMessages: Record<string, Message[]> = {};
+        const updatedMessages: Record<string, Message[]> = pageNum === 1 ? {} : { ...messages };
         messagesData.forEach((message: Message) => {
           const messageDate = message.date.split(' ')[0];
           if (!updatedMessages[messageDate]) {
@@ -204,14 +210,65 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
           });
         });
         setMessages(updatedMessages);
+        setHasMore(messagesData.length === 20);
       }
     } catch (error) {
       console.log('Error in ChatScreen::fetchMessages ->', error);
     } finally {
-      console.log('Exited from ChatScreen::fetchMessages');
       setFetchMsgLoading(false);
     }
   }
+
+  const loadMoreMessages = useCallback(() => {
+    if (hasMore && !fetchMsgLoading) {
+      setPage((prev) => {
+        const nextPage = prev + 1;
+        fetchMessages(selectedUser.id, nextPage);
+        return nextPage;
+      });
+    }
+  }, [hasMore, fetchMsgLoading, selectedUser.id]);
+
+  // useEffect(() => {
+  //   observerRef.current = new IntersectionObserver(
+  //     (entries) => {
+  //       if (entries[0].isIntersecting) {
+  //         loadMoreMessages();
+  //       }
+  //     },
+  //     { threshold: 0.1 }
+  //   );
+  
+  //   if (loadMoreRef.current) {
+  //     observerRef.current.observe(loadMoreRef.current);
+  //   }
+  
+  //   return () => {
+  //     if (observerRef.current && loadMoreRef.current) {
+  //       observerRef.current.unobserve(loadMoreRef.current);
+  //     }
+  //   };
+  // }, [loadMoreMessages]);
+
+  useEffect(() => {
+    if (loadMoreRef.current) {
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            loadMoreMessages();
+          }
+        },
+        { threshold: 0.1 }
+      );
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current && loadMoreRef.current) {
+        observerRef.current.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [loadMoreMessages]);
 
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -346,6 +403,10 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         chatRef.current?.scrollIntoView();
       }
       setLastMsgDate(lastDate.date)
+      // if (lastMsgDate !== lastDate.date && (lastDate.isSender || lastMsgDate === '')) {
+      //   chatRef.current?.scrollIntoView({ behavior: 'smooth' });
+      // }
+      // setLastMsgDate(lastDate.date);
     }
   }, [messages]);
 
@@ -381,14 +442,15 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         </div>
       </div>
 
-      <div className={`flex flex-col px-10 gap-2 pt-18 pb-16 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed h-full relative ${replyMsg ? 'mb-12' : ''}`}>
+      <div className={`flex flex-col px-10 gap-2 pt-18 pb-16 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed h-full relative overflow-y-auto ${replyMsg ? 'mb-12' : ''}`}>
         <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60 z-0"></div>
-        {fetchMsgLoading && (
+        {fetchMsgLoading && page === 1 && (
           <div className="flex flex-col justify-center items-center h-full gap-2">
             <Loader2 className="h-12 w-12 animate-spin" />
             <p className='text-primary animate-pulse'>Loading the messages...</p>
           </div>
         )}
+        <div ref={loadMoreRef}></div>
         {!fetchMsgLoading && Object.entries(messages).map(([date, dateMessages], index) => (
           <div key={index} className='flex flex-col gap-2'>
             <div className="text-center text-xs my-1.5 bg-zinc-500 w-min text-nowrap py-1 px-2 rounded-md text-white mx-auto">
@@ -409,6 +471,11 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
             ))}
           </div>
         ))}
+        {fetchMsgLoading && page > 1 && (
+          <div className="flex justify-center my-2">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        )}
         <div ref={chatRef}></div>
       </div>
 
