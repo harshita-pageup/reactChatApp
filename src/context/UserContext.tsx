@@ -1,6 +1,5 @@
-import axiosInstance from "@/api/axiosInstance";
 import { User } from "@/types/auth";
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 interface UserContextType {
     user: User | null;
@@ -19,11 +18,6 @@ export const useUser = () => {
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-    useEffect(() => {
-        axiosInstance.get('/api/authUser').then(res => {
-            setUser(res.data.data);
-        });
-    }, []);
 
     return (
         <UserContext.Provider value={{ user, setUser }}>

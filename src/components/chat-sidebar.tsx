@@ -35,10 +35,6 @@ type ChatSidebarProps = {
 export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoading, loadMoreRef, hasMore, searchQuery, setSearchQuery }: ChatSidebarProps) {
   const { state } = useSidebar();
 
-  const filteredUsers = chatUsers.filter((user) =>
-    user.name.toLowerCase().includes((searchQuery??"").toLowerCase())
-  );
-
   return (
     <Sidebar>
       <SidebarHeader className='flex gap-2 py-3'>
@@ -55,7 +51,8 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
           type="text"
           placeholder="Search"
           className="rounded-full"
-          value={searchQuery??""}
+          autoComplete="off"
+          value={searchQuery ?? ""}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </SidebarHeader>
@@ -69,12 +66,12 @@ export function ChatSidebar({ chatUsers, selectedUser, setSelectedUser, isLoadin
                 <p className='text-primary text-sm animate-pulse'>Loading the users...</p>
               </SidebarMenuItem>
             )}
-            {!isLoading && filteredUsers.length === 0 && (
+            {!isLoading && chatUsers.length === 0 && (
               <SidebarMenuItem className="flex justify-center">
                 <p className="text-muted">No users found</p>
               </SidebarMenuItem>
             )}
-            {!isLoading && filteredUsers.sort((a, b) => {
+            {!isLoading && chatUsers.sort((a, b) => {
               const dateA = new Date(a.lastMsgDate);
               const dateB = new Date(b.lastMsgDate);
               return dateB.getTime() - dateA.getTime();
@@ -102,7 +99,7 @@ function ProfileDropDown() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     setLoading(true);
     removeToken();
     setTimeout(() => {

@@ -27,7 +27,7 @@ export function Login() {
   const { setUser } = useUser();
 
   const validationSchema = Yup.object({
-    username: Yup.string().email("Invalid email format").required("Username is required"),
+    username: Yup.string().email("Invalid email format").required("Email is required"),
     password: Yup.string().required("Password is required"),
   });
 
