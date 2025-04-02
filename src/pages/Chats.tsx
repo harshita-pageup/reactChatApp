@@ -3,7 +3,7 @@ import { ChatSidebar } from '@/components/chat-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { useUser } from '@/context/UserContext';
 import { ChatUser, User } from '@/types/auth';
-import { UserPlusIcon, X } from 'lucide-react';
+import { UserPlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
 import { getToken, removeToken } from '@/utils/auth';
