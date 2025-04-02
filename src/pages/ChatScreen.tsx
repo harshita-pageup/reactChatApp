@@ -28,7 +28,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const emojieDivRef = useRef<HTMLDivElement>(null);
   const { setChatUsers } = useChatUsers();
-  const [lastMsgDate, setLastMsgDate] = useState<string>('');
+  const [lastMsgDate, setLastMsgDate] = useState<string>();
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);
@@ -346,6 +346,10 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         chatRef.current?.scrollIntoView();
       }
       setLastMsgDate(lastDate.date)
+    }
+
+    return () => {
+      setLastMsgDate('');
     }
   }, [messages]);
 
