@@ -13,13 +13,14 @@ import { BASE_URL } from "@/api/enviornment"
 type ChatBubbleProps = {
   message: Message,
   addReaction: (reaction: string, message: Message) => void,
-  setReplyMsg: (msg: Message) => void
+  setReplyMsg: (msg: Message) => void,
+  ref?: (node: HTMLDivElement) => void | undefined
 }
-const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
+const ChatBubble = ({ message, addReaction, setReplyMsg, ref }: ChatBubbleProps) => {
   const { user } = useUser();
   if (message.isSender) {
     return (
-      <div className={`group flex flex-row items-start gap-1 ${message.reactions.length > 0 ? 'mb-4' : ''}`}>
+      <div ref={ref} className={`group flex flex-row items-start gap-1 ${message.reactions.length > 0 ? 'mb-4' : ''}`}>
         <div className="ml-auto"></div>
         <ActionButtons message={message} addReaction={addReaction} setReplyMsg={setReplyMsg} />
 
@@ -43,7 +44,7 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
     )
   } else {
     return (
-      <div className={`group flex flex-row items-start gap-1 ${message.reactions.length > 0 ? 'mb-4' : ''}`}>
+      <div ref={ref} className={`group flex flex-row items-start gap-1 ${message.reactions.length > 0 ? 'mb-4' : ''}`}>
         <div className="flex w-max max-w-[75%] flex-col gap-2 rounded-lg pl-3 pr-12 py-2 text-sm bg-muted z-10 relative">
           {message.replyTo && (
             <div className="w-full flex justify-start items-center gap-2 bg-primary text-accent h-full rounded-md px-2 py-1">

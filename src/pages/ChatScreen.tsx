@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useUser } from '@/context/UserContext';
 import { ChatUser, Message, User } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, Video, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
 import { useChatUsers } from '@/context/UserListContext';
 import { BASE_URL, PUSHER_APP_CLUSTER, PUSHER_APP_KEY } from '@/api/enviornment';
@@ -29,6 +29,8 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const emojieDivRef = useRef<HTMLDivElement>(null);
   const { setChatUsers } = useChatUsers();
   const [lastMsgDate, setLastMsgDate] = useState<string>();
+  const [page, setPage] = useState<number>(1);
+  const [hasMorePages, setHasMorePages] = useState<boolean>(true);
 
   const { user } = useUser();
   const chatRef = useRef<HTMLDivElement>(null);
@@ -88,8 +90,6 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
   useEffect(() => {
     if (!selectedUser) return;
-
-    fetchMessages(selectedUser.id);
 
     const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
     channel.bind('new-message', ({ message }: { message: Message }) => {
@@ -189,21 +189,32 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     setFetchMsgLoading(true);
     console.log('Entered into ChatScreen::fetchMessages');
     try {
-      const response = await axiosInstance.post(`/api/getMessages`, { receiverId: userId });
+      const response = await axiosInstance.post(`/api/getMessages`, { receiverId: userId, page: page, perPage: 30 });
       if (response.data.status) {
-        const messagesData = response.data.data;
-        const updatedMessages: Record<string, Message[]> = {};
-        messagesData.forEach((message: Message) => {
+        const messagesData = response.data.data.data;
+        const updatedMessages: Record<string, Message[]> = {...messages};
+
+        messagesData.sort((a: any, b: any) => {
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateB.getTime() - dateA.getTime();
+        }).forEach((message: Message) => {
           const messageDate = message.date.split(' ')[0];
           if (!updatedMessages[messageDate]) {
             updatedMessages[messageDate] = [];
           }
+          console.log(updatedMessages);
 
-          updatedMessages[messageDate].push({
-            ...message
-          });
+          updatedMessages[messageDate].push(message);
         });
-        setMessages(updatedMessages);
+        setMessages(Object.keys(updatedMessages)
+        .sort()
+        .reduce((acc: any, key) => {
+          acc[key] = updatedMessages[key];
+          return acc;
+        }, {}));
+        setHasMorePages(response.data.data.pagination.hasMorePages);
+        // setHasMorePages(page === 2 ? false : true);
       }
     } catch (error) {
       console.log('Error in ChatScreen::fetchMessages ->', error);
@@ -212,6 +223,29 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       setFetchMsgLoading(false);
     }
   }
+
+  useEffect(() => {
+    fetchMessages(selectedUser.id);
+  }, [page]);
+
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastPostElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (fetchMsgLoading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMorePages) {
+            setPage((prevPage) => prevPage + 1);
+          }
+        },
+        { threshold: 1}
+      );
+      if (node) observer.current.observe(node);
+    },
+    [fetchMsgLoading, hasMorePages]
+  );
+
 
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -387,14 +421,19 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
       <div className={`flex flex-col px-10 gap-2 pt-18 pb-16 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed h-full relative ${replyMsg ? 'mb-12' : ''}`}>
         <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60 z-0"></div>
-        {fetchMsgLoading && (
+        {fetchMsgLoading && Object.keys(messages).length === 0 && (
           <div className="flex flex-col justify-center items-center h-full gap-2">
             <Loader2 className="h-12 w-12 animate-spin" />
             <p className='text-primary animate-pulse'>Loading the messages...</p>
           </div>
         )}
-        {!fetchMsgLoading && Object.entries(messages).map(([date, dateMessages], index) => (
-          <div key={index} className='flex flex-col gap-2'>
+        {fetchMsgLoading && Object.keys(messages).length > 0 && (
+          <div className="flex flex-col justify-center items-center h-full gap-2">
+            <Loader2 className="h-12 w-12 animate-spin" />
+          </div>
+        )}
+        {Object.entries(messages).map(([date, dateMessages], dateIndex) => (
+          <div key={`dateIndex-${dateIndex}`} className='flex flex-col gap-2'>
             <div className="text-center text-xs my-1.5 bg-zinc-500 w-min text-nowrap py-1 px-2 rounded-md text-white mx-auto">
               {new Date(date).toLocaleDateString('en-US', {
                 weekday: 'long',
@@ -403,9 +442,10 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
                 day: 'numeric',
               })}
             </div>
-            {dateMessages.map((message) => (
+            {dateMessages.map((message, messageIndex) => (
               <ChatBubble
                 key={message.id}
+                ref={dateIndex === 0 && messageIndex === 0 && !fetchMsgLoading ? lastPostElementRef : undefined}
                 message={message}
                 addReaction={addReaction}
                 setReplyMsg={setReplyMsg}
