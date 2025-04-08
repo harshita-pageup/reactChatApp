@@ -3,7 +3,7 @@ import ChatBubble from '@/components/chat-bubble';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUser } from '@/context/UserContext';
-import { ChatUser, Message, User } from '@/types/auth';
+import { ChatUser, ExtendedMessage, Message, User } from '@/types/auth';
 import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, Video, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
@@ -16,17 +16,27 @@ type ChatScreenProps = {
   chatUsers: ChatUser[],
 };
 
+// Extend Message type to include file properties
+// interface ExtendedMessage extends Message {
+//   fileUrl?: string;
+//   fileName?: string;
+//   fileType?: string;
+// }
+
 function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const [typeMsg, setTypeMsg] = useState<string>('');
-  const [replyMsg, setReplyMsg] = useState<Message | null>(null);
-  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const [replyMsg, setReplyMsg] = useState<ExtendedMessage | null>(null);
+  const [messages, setMessages] = useState<Record<string, ExtendedMessage[]>>({});
   const [fetchMsgLoading, setFetchMsgLoading] = useState<boolean>(false);
   const [sendMsgLoading, setSendMsgLoading] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const userStatus = chatUsers.find((user) => user.id === selectedUser?.id);
   const [typingTxt, setTypingTxt] = useState((userStatus?.isOnline) ? 'online' : '');
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const emojieDivRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { setChatUsers } = useChatUsers();
   const [lastMsgDate, setLastMsgDate] = useState<string>();
 
@@ -36,6 +46,19 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const pusher = new Pusher(PUSHER_APP_KEY, {
     cluster: PUSHER_APP_CLUSTER
   });
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFilePreview(reader.result as string); // This will be the Base64 string
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const updateTypingStatus = async (typing: boolean) => {
     console.log('Entered into ChatScreen::updateTypingStatus');
@@ -91,97 +114,97 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
     fetchMessages(selectedUser.id);
 
-    const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
-    channel.bind('new-message', ({ message }: { message: Message }) => {
-      console.log('Pusher: Updating the new message.');
-      let date = new Date().toLocaleString('sv').split(' ')[0];
-      setMessages((prev) => {
-        const updatedMessages = { ...prev };
-        if (!updatedMessages[date]) {
-          updatedMessages[date] = [];
-        }
-        // Check if the message id already exists for the current date
-        const messageExists = updatedMessages[date].some(msg => msg.id === message.id);
+    // const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
+    // channel.bind('new-message', ({ message }: { message: Message }) => {
+    //   console.log('Pusher: Updating the new message.');
+    //   let date = new Date().toLocaleString('sv').split(' ')[0];
+    //   setMessages((prev) => {
+    //     const updatedMessages = { ...prev };
+    //     if (!updatedMessages[date]) {
+    //       updatedMessages[date] = [];
+    //     }
+    //     // Check if the message id already exists for the current date
+    //     const messageExists = updatedMessages[date].some(msg => msg.id === message.id);
 
-        // If the message doesn't exist, add it to the array
-        if (!messageExists) {
-          updatedMessages[date] = [
-            ...updatedMessages[date],
-            {
-              id: message.id,
-              message: message.message,
-              senderId: message.senderId,
-              receiverId: message.receiverId,
-              sender: message.sender,
-              receiver: message.receiver,
-              isSender: user!.id === message.senderId,
-              replyTo: message.replyTo,
-              reactions: [],
-              date: date,
-            },
-          ];
-        }
-        return updatedMessages;
-      });
-    });
+    //     // If the message doesn't exist, add it to the array
+    //     if (!messageExists) {
+    //       updatedMessages[date] = [
+    //         ...updatedMessages[date],
+    //         {
+    //           id: message.id,
+    //           message: message.message,
+    //           senderId: message.senderId,
+    //           receiverId: message.receiverId,
+    //           sender: message.sender,
+    //           receiver: message.receiver,
+    //           isSender: user!.id === message.senderId,
+    //           replyTo: message.replyTo,
+    //           reactions: [],
+    //           date: date,
+    //         },
+    //       ];
+    //     }
+    //     return updatedMessages;
+    //   });
+    // });
 
-    const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
-    chatChannel.bind('user-typing', ({ isTyping }: { userId: number, isTyping: boolean }) => {
-      console.log('Pusher: Updating the typing status.');
-      setTypingTxt(isTyping ? 'typing...' : 'online');
-    });
+    // const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
+    // chatChannel.bind('user-typing', ({ isTyping }: { userId: number, isTyping: boolean }) => {
+    //   console.log('Pusher: Updating the typing status.');
+    //   setTypingTxt(isTyping ? 'typing...' : 'online');
+    // });
 
-    const reactionChannel = pusher.subscribe(`reaction.${selectedUser.id}`);
-    reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User, date: string }) => {
-      console.log('Pusher: Updating the reaction of the message.')
-      let date = data.date;
-      setMessages((prev) => {
-        const updatedMessages = { ...prev };
-        const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === data.messageId);
+    // const reactionChannel = pusher.subscribe(`reaction.${selectedUser.id}`);
+    // reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User, date: string }) => {
+    //   console.log('Pusher: Updating the reaction of the message.')
+    //   let date = data.date;
+    //   setMessages((prev) => {
+    //     const updatedMessages = { ...prev };
+    //     const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === data.messageId);
 
-        if (messageToUpdate) {
-          const existingReactionIndex = messageToUpdate.reactions.findIndex(
-            (r) => r.user.id === data.userId
-          );
+    //     if (messageToUpdate) {
+    //       const existingReactionIndex = messageToUpdate.reactions.findIndex(
+    //         (r) => r.user.id === data.userId
+    //       );
 
-          if (existingReactionIndex !== -1) {
-            messageToUpdate.reactions = [
-              ...messageToUpdate.reactions.slice(0, existingReactionIndex),
-              {
-                ...messageToUpdate.reactions[existingReactionIndex],
-                emojie: data.emojie,
-              },
-              ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
-            ];
-          } else {
-            messageToUpdate.reactions = [
-              ...messageToUpdate.reactions,
-              {
-                emojie: data.emojie,
-                user: {
-                  id: data.user!.id,
-                  name: data.user!.name,
-                  email: data.user!.email,
-                  profile: data.user!.profile || '',
-                  isOnline: false
-                },
-              },
-            ];
-          }
+    //       if (existingReactionIndex !== -1) {
+    //         messageToUpdate.reactions = [
+    //           ...messageToUpdate.reactions.slice(0, existingReactionIndex),
+    //           {
+    //             ...messageToUpdate.reactions[existingReactionIndex],
+    //             emojie: data.emojie,
+    //           },
+    //           ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
+    //         ];
+    //       } else {
+    //         messageToUpdate.reactions = [
+    //           ...messageToUpdate.reactions,
+    //           {
+    //             emojie: data.emojie,
+    //             user: {
+    //               id: data.user!.id,
+    //               name: data.user!.name,
+    //               email: data.user!.email,
+    //               profile: data.user!.profile || '',
+    //               isOnline: false
+    //             },
+    //           },
+    //         ];
+    //       }
 
-          updatedMessages[date] = updatedMessages[date].map((msg) =>
-            msg.id === data.messageId ? { ...msg } : msg
-          );
-        }
+    //       updatedMessages[date] = updatedMessages[date].map((msg) =>
+    //         msg.id === data.messageId ? { ...msg } : msg
+    //       );
+    //     }
 
-        return updatedMessages;
-      });
-    });
+    //     return updatedMessages;
+    //   });
+    // });
 
     return () => {
-      pusher.unsubscribe(`chat.${user!.id}.${selectedUser.id}`);
-      pusher.unsubscribe(`chat.${selectedUser.id}`);
-      pusher.unsubscribe(`reaction.${selectedUser.id}`);
+      // pusher.unsubscribe(`chat.${user!.id}.${selectedUser.id}`);
+      // pusher.unsubscribe(`chat.${selectedUser.id}`);
+      // pusher.unsubscribe(`reaction.${selectedUser.id}`);
     };
   }, [selectedUser]);
 
@@ -192,15 +215,17 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       const response = await axiosInstance.post(`/api/getMessages`, { receiverId: userId });
       if (response.data.status) {
         const messagesData = response.data.data;
-        const updatedMessages: Record<string, Message[]> = {};
-        messagesData.forEach((message: Message) => {
+        const updatedMessages: Record<string, ExtendedMessage[]> = {};
+        messagesData.forEach((message: ExtendedMessage) => {
           const messageDate = message.date.split(' ')[0];
           if (!updatedMessages[messageDate]) {
             updatedMessages[messageDate] = [];
           }
-
           updatedMessages[messageDate].push({
-            ...message
+            ...message,
+            fileUrl: message.fileUrl,
+            fileName: message.fileName,
+            fileType: message.fileType
           });
         });
         setMessages(updatedMessages);
@@ -211,23 +236,49 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       console.log('Exited from ChatScreen::fetchMessages');
       setFetchMsgLoading(false);
     }
-  }
+  };
 
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (typeMsg.trim()) {
-      addMessage(typeMsg, selectedUser.id);
+    if (typeMsg.trim() || selectedFile) {
+      addMessage(typeMsg, selectedUser.id, selectedFile || undefined);
       setIsTyping(false);
     }
   };
 
-  const addMessage = async (message: string, receiverId: number) => {
+  const addMessage = async (message: string, receiverId: number, file?: File) => {
     console.log('Entered into ChatScreen::addMessage');
     try {
       setSendMsgLoading(true);
       let date = new Date().toLocaleString('sv').split(' ')[0];
-      let replyMsgId = replyMsg?.id
-      const response = await axiosInstance.post(`/api/sendMessage`, { message, receiverId, replyMsgId });
+      let replyMsgId = replyMsg?.id;
+
+      let fileBase64: string | undefined;
+      if (file) {
+        // Convert file to Base64 if present
+        fileBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      const payload = {
+        message,
+        receiverId,
+        replyMsgId,
+        ...(file && {
+          file: fileBase64, // Send Base64 string
+          fileName: file.name,
+          fileType: file.type
+        })
+      };
+
+      const response = await axiosInstance.post(`/api/sendMessage`, payload, {
+        headers: {
+          'Content-Type': 'application/json' // Use JSON content type since we're sending Base64
+        }
+      });
       if (response.data.status) {
         setMessages((prev) => {
           const updatedMessages = { ...prev };
@@ -247,6 +298,11 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
               replyTo: replyMsg,
               reactions: [],
               date: new Date().toLocaleString('sv'),
+              ...(file && {
+                fileUrl: response.data.data.fileUrl,
+                fileName: file.name,
+                fileType: file.type
+              })
             },
           ];
           return updatedMessages;
@@ -264,6 +320,9 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
         setTypeMsg('');
         setReplyMsg(null);
+        setSelectedFile(null);
+        setFilePreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     } catch (error: any) {
       console.log('Errors in ChatScreen::addMessage ->', error);
@@ -385,7 +444,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         </div>
       </div>
 
-      <div className={`flex flex-col px-10 gap-2 pt-18 pb-16 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed h-full relative ${replyMsg ? 'mb-12' : ''}`}>
+      <div className={`flex flex-col px-10 gap-2 pt-18 pb-16 bg-[url(/src/assets/chat-background.jpg)] bg-cover bg-fixed h-full relative ${replyMsg || selectedFile ? 'mb-12' : ''}`}>
         <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60 z-0"></div>
         {fetchMsgLoading && (
           <div className="flex flex-col justify-center items-center h-full gap-2">
@@ -406,7 +465,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
             {dateMessages.map((message) => (
               <ChatBubble
                 key={message.id}
-                message={message}
+                message={message as ExtendedMessage} // Cast to ExtendedMessage
                 addReaction={addReaction}
                 setReplyMsg={setReplyMsg}
               />
@@ -417,18 +476,49 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       </div>
 
       <div className="fixed bottom-0 right-0 w-[calc(100%-20rem)] z-20 bg-sidebar">
-        {replyMsg && (
+        {(replyMsg || selectedFile) && (
           <div className="flex justify-center items-end px-4 h-12 pt-1.5 gap-2">
-            <Button variant="outline" size="icon" onClick={() => setReplyMsg(null)}>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => {
+                setReplyMsg(null);
+                setSelectedFile(null);
+                setFilePreview(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+              }}
+            >
               <X />
             </Button>
             <div className="w-full flex justify-start items-center gap-2 bg-accent h-full rounded-md px-2 py-1">
               <div className="w-1 rounded-md bg-primary h-full my-2"></div>
-              <div className="flex flex-col">
+              {/* <div className="flex flex-col">
                 <h4 className="text-sm leading-4 font-bold">
                   {replyMsg.isSender ? "You" : selectedUser.name}
                 </h4>
                 <p className="text-xs line-clamp-1">{replyMsg.message}</p>
+              </div> */}
+              <div className="flex flex-col flex-1">
+                {selectedFile ? (
+                  <>
+                    <h4 className="text-sm leading-4 font-bold">File Attachment</h4>
+                    {filePreview && selectedFile.type.startsWith('image/') ? (
+                      <div className="flex items-center gap-2">
+                        <img src={filePreview} alt="Preview" className="h-8 w-8 object-cover rounded" />
+                        <p className="text-xs line-clamp-1">{selectedFile.name}</p>
+                      </div>
+                    ) : (
+                      <p className="text-xs line-clamp-1">{selectedFile.name}</p>
+                    )}
+                  </>
+                ) : replyMsg && (
+                  <>
+                    <h4 className="text-sm leading-4 font-bold">
+                      {replyMsg.isSender ? "You" : selectedUser.name}
+                    </h4>
+                    <p className="text-xs line-clamp-1">{replyMsg.message}</p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -437,7 +527,14 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
           onSubmit={handleSendMessage}
           className="flex justify-center items-center px-4 h-14"
         >
-          <Button variant="outline" size="icon" type='button'>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            className="hidden"
+            accept="image/*,.pdf,.doc,.docx"
+          />
+          <Button variant="outline" size="icon" type='button' onClick={() => fileInputRef.current?.click()}>
             <Paperclip />
           </Button>
           <Button variant="outline" size="icon" type='button' className='relative ml-1.5' onClick={() => { if (!showEmojiPicker) setShowEmojiPicker(true) }}>

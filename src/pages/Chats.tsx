@@ -36,52 +36,52 @@ const Chats = () => {
   });
 
   useEffect(() => {
-    const channel = pusher.subscribe('presence-chat');
+    // const channel = pusher.subscribe('presence-chat');
 
-    channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
-      console.log('Pusher: Subscription succeeded.');
-      Object.keys(members).map((value: string) => {
-        let onlineUser = members[value].user as User
-        setChatUsers((prev) => {
-          const updatedChatUsers = prev.map((user: any) => {
-            if (user.id === onlineUser.id) {
-              return { ...user, isOnline: true };
-            }
-            return user;
-          });
-          return updatedChatUsers;
-        });
-      })
-    });
+    // channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
+    //   console.log('Pusher: Subscription succeeded.');
+    //   Object.keys(members).map((value: string) => {
+    //     let onlineUser = members[value].user as User
+    //     setChatUsers((prev) => {
+    //       const updatedChatUsers = prev.map((user: any) => {
+    //         if (user.id === onlineUser.id) {
+    //           return { ...user, isOnline: true };
+    //         }
+    //         return user;
+    //       });
+    //       return updatedChatUsers;
+    //     });
+    //   })
+    // });
 
-    channel.bind('pusher:member_added', (member: any) => {
-      console.log('Pusher: New member added.');
-      setChatUsers((prev) => {
-        const updatedChatUsers = prev.map((user: any) => {
-          if (user.id === member.info.user.id) {
-            return { ...user, isOnline: true };
-          }
-          return user;
-        });
-        return updatedChatUsers;
-      });
-    });
+    // channel.bind('pusher:member_added', (member: any) => {
+    //   console.log('Pusher: New member added.');
+    //   setChatUsers((prev) => {
+    //     const updatedChatUsers = prev.map((user: any) => {
+    //       if (user.id === member.info.user.id) {
+    //         return { ...user, isOnline: true };
+    //       }
+    //       return user;
+    //     });
+    //     return updatedChatUsers;
+    //   });
+    // });
 
-    channel.bind('pusher:member_removed', (member: any) => {
-      console.log('Pusher: Member removed.');
-      setChatUsers((prev) => {
-        const updatedChatUsers = prev.map((user: any) => {
-          if (user.id === member.info.user.id) {
-            return { ...user, isOnline: false };
-          }
-          return user;
-        });
-        return updatedChatUsers;
-      });
-    });
+    // channel.bind('pusher:member_removed', (member: any) => {
+    //   console.log('Pusher: Member removed.');
+    //   setChatUsers((prev) => {
+    //     const updatedChatUsers = prev.map((user: any) => {
+    //       if (user.id === member.info.user.id) {
+    //         return { ...user, isOnline: false };
+    //       }
+    //       return user;
+    //     });
+    //     return updatedChatUsers;
+    //   });
+    // });
 
     return () => {
-      pusher.unsubscribe('presence-chat');
+      // pusher.unsubscribe('presence-chat');
       if (user) {
         pusher.unsubscribe(`newMessage.${user!.id}`);
       }

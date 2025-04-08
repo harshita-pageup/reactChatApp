@@ -36,6 +36,12 @@ export interface Message {
   date: string
 }
 
+export interface ExtendedMessage extends Message {
+  fileUrl?: string;
+  fileName?: string;
+  fileType?: string;
+}
+
 export interface Reaction {
   emojie: string
   user: User

@@ -1,6 +1,6 @@
-import { Message, Reaction } from "@/types/auth"
+import { ExtendedMessage, Message, Reaction } from "@/types/auth"
 import { Button } from "./ui/button"
-import { Reply, Smile } from "lucide-react"
+import { Paperclip, Reply, Smile } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -11,12 +11,13 @@ import { useUser } from "@/context/UserContext"
 import { BASE_URL } from "@/api/enviornment"
 
 type ChatBubbleProps = {
-  message: Message,
-  addReaction: (reaction: string, message: Message) => void,
-  setReplyMsg: (msg: Message) => void
+  message: ExtendedMessage,
+  addReaction: (reaction: string, message: ExtendedMessage) => void,
+  setReplyMsg: (msg: ExtendedMessage) => void
 }
 const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
   const { user } = useUser();
+  const isImage = message.fileType?.startsWith("image/");
   if (message.isSender) {
     return (
       <div className={`group flex flex-row items-start gap-1 ${message.reactions.length > 0 ? 'mb-4' : ''}`}>
@@ -33,6 +34,28 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
                 </h4>
                 <p className="text-xs line-clamp-1">{message.replyTo.message}</p>
               </div>
+            </div>
+          )}
+          {message.fileUrl && (
+            <div className="mb-2">
+              {isImage ? (
+                <img
+                  src={message.fileUrl}
+                  alt={message.fileName}
+                  className="max-w-[200px] rounded-lg cursor-pointer"
+                  onClick={() => window.open(message.fileUrl, "_blank")}
+                />
+              ) : (
+                <a
+                  href={message.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm hover:underline"
+                >
+                  <Paperclip size={16} />
+                  <span>{message.fileName}</span>
+                </a>
+              )}
             </div>
           )}
           <p>{message.message}</p>
@@ -56,6 +79,28 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
               </div>
             </div>
           )}
+          {message.fileUrl && (
+            <div className="mb-2">
+              {isImage ? (
+                <img
+                  src={message.fileUrl}
+                  alt={message.fileName}
+                  className="max-w-[200px] rounded-lg cursor-pointer"
+                  onClick={() => window.open(message.fileUrl, "_blank")}
+                />
+              ) : (
+                <a
+                  href={message.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm hover:underline"
+                >
+                  <Paperclip size={16} />
+                  <span>{message.fileName}</span>
+                </a>
+              )}
+            </div>
+          )}
           <p>{message.message}</p>
           <ChatTimestamp date={message.date} />
           {message.reactions.length > 0 && (<DisplayReactions reactions={message.reactions} isSender={message.isSender} />)}
@@ -68,9 +113,9 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
 }
 
 type ActionButtonsProps = {
-  message: Message,
-  addReaction: (reaction: string, message: Message) => void,
-  setReplyMsg: (msg: Message) => void
+  message: ExtendedMessage,
+  addReaction: (reaction: string, message: ExtendedMessage) => void,
+  setReplyMsg: (msg: ExtendedMessage) => void
 }
 function ActionButtons({ message, addReaction, setReplyMsg }: ActionButtonsProps) {
   return (
