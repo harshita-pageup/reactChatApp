@@ -80,11 +80,25 @@ const Chats = () => {
     //   });
     // });
 
+    // const chatUserChannel = pusher.subscribe(`newMessage.${user!.id}`);
+    // chatUserChannel.bind('newMessage', ({ message }: { message: ExtendedMessage }) => {
+    //   console.log('Pusher: Updating the typing status.');
+    //   setChatUsers((prev) => {
+    //     const updatedChatUsers = prev.map((users) => {
+    //       if (users.id === message.receiverId) {
+    //         return { ...users, lastMsg: message.message, lastMsgDate: new Date().toLocaleString('sv') };
+    //       }
+    //       return users;
+    //     });
+    //     return updatedChatUsers;
+    //   })
+    // });
+
     return () => {
       // pusher.unsubscribe('presence-chat');
-      if (user) {
-        pusher.unsubscribe(`newMessage.${user!.id}`);
-      }
+      // if (user) {
+      //   pusher.unsubscribe(`newMessage.${user!.id}`);
+      // }
     };
   }, [user]);
 

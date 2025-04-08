@@ -1,7 +1,8 @@
+// export const BASE_URL = 'https://violet-dotterel-782124.hostingersite.com';
 export const BASE_URL = 'http://127.0.0.1:8000';
 
 // harshitashrivastava97@gmail.com
-export const PUSHER_APP_KEY = '8603fef9f1f267e422ae'
+export const PUSHER_APP_KEY = '44d229af056b5227ae5b'
 export const PUSHER_APP_CLUSTER = 'ap2'
 
 // abhay.nmdo.dev@gmail.com

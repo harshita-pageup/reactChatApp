@@ -16,13 +16,6 @@ type ChatScreenProps = {
   chatUsers: ChatUser[],
 };
 
-// Extend Message type to include file properties
-// interface ExtendedMessage extends Message {
-//   fileUrl?: string;
-//   fileName?: string;
-//   fileType?: string;
-// }
-
 function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   const [typeMsg, setTypeMsg] = useState<string>('');
   const [replyMsg, setReplyMsg] = useState<ExtendedMessage | null>(null);
@@ -115,7 +108,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     fetchMessages(selectedUser.id);
 
     // const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
-    // channel.bind('new-message', ({ message }: { message: Message }) => {
+    // channel.bind('new-message', ({ message }: { message: ExtendedMessage }) => {
     //   console.log('Pusher: Updating the new message.');
     //   let date = new Date().toLocaleString('sv').split(' ')[0];
     //   setMessages((prev) => {
@@ -141,6 +134,9 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     //           replyTo: message.replyTo,
     //           reactions: [],
     //           date: date,
+    //           fileUrl: message.fileUrl,
+    //           fileName: message.fileName,
+    //           fileType: message.fileType
     //         },
     //       ];
     //     }
@@ -268,7 +264,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         receiverId,
         replyMsgId,
         ...(file && {
-          file: fileBase64, // Send Base64 string
+          file: fileBase64,
           fileName: file.name,
           fileType: file.type
         })
@@ -276,7 +272,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
       const response = await axiosInstance.post(`/api/sendMessage`, payload, {
         headers: {
-          'Content-Type': 'application/json' // Use JSON content type since we're sending Base64
+          'Content-Type': 'application/json'
         }
       });
       if (response.data.status) {
@@ -299,9 +295,9 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
               reactions: [],
               date: new Date().toLocaleString('sv'),
               ...(file && {
-                fileUrl: response.data.data.fileUrl,
-                fileName: file.name,
-                fileType: file.type
+                fileUrl: response.data.data.message.fileUrl,
+                fileName: response.data.data.message.fileName,
+                fileType: response.data.data.message.fileType
               })
             },
           ];
