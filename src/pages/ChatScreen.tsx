@@ -400,7 +400,6 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     const lastDateObj = messages[Object.keys(messages)[Object.keys(messages).length - 1]];
     if (lastDateObj) {
       let lastDate = lastDateObj[lastDateObj.length - 1];
-      console.log(lastMsgDate !== undefined && lastMsgDate !== lastDate.date && (lastDate.isSender || lastMsgDate === ''));
       if (lastMsgDate !== undefined && lastMsgDate !== lastDate.date && (lastDate.isSender || lastMsgDate === '')) {
         chatRef.current?.scrollIntoView();
       }

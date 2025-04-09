@@ -124,7 +124,7 @@ const NewMessageDialog = () => {
             name: filteredSelectedUser.name,
             email: filteredSelectedUser.email,
             profile: filteredSelectedUser.profile,
-            isOnline: true,
+            isOnline: false,
             lastMsg: '',
             lastMsgDate: new Date().toLocaleString('sv'),
           }

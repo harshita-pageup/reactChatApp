@@ -87,7 +87,7 @@ const Chats = () => {
           console.log('Pusher: Updating the last message and time.');
           setChatUsers((prev) => {
             const updatedChatUsers = prev.map((users) => {
-              if (users.id === message.receiverId) {
+              if (users.id === message.senderId) {
                 return { ...users, lastMsg: message.message, lastMsgDate: new Date().toLocaleString('sv') };
               }
               return users;

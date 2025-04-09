@@ -1,4 +1,4 @@
-import { ExtendedMessage, Message, Reaction } from "@/types/auth"
+import { ExtendedMessage, Reaction } from "@/types/auth"
 import { Button } from "./ui/button"
 import { Paperclip, Reply, Smile } from "lucide-react"
 import {
@@ -39,12 +39,14 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
           {message.fileUrl && (
             <div className="mb-2">
               {isImage ? (
-                <img
-                  src={message.fileUrl}
-                  alt={message.fileName}
-                  className="max-w-[200px] rounded-lg cursor-pointer"
-                  onClick={() => window.open(message.fileUrl, "_blank")}
-                />
+                <div className="w-[200px] h-[200px] rounded-lg cursor-pointer">
+                  <img
+                    src={message.fileUrl}
+                    alt={message.fileName}
+                    className="w-[200px] h-[200px] object-cover rounded-lg"
+                    onClick={() => window.open(message.fileUrl, "_blank")}
+                  />
+                </div>
               ) : (
                 <a
                   href={message.fileUrl}
@@ -82,12 +84,14 @@ const ChatBubble = ({ message, addReaction, setReplyMsg }: ChatBubbleProps) => {
           {message.fileUrl && (
             <div className="mb-2">
               {isImage ? (
-                <img
-                  src={message.fileUrl}
-                  alt={message.fileName}
-                  className="max-w-[200px] rounded-lg cursor-pointer"
-                  onClick={() => window.open(message.fileUrl, "_blank")}
-                />
+                <div className="w-[200px] h-[200px] rounded-lg cursor-pointer">
+                  <img
+                    src={message.fileUrl}
+                    alt={message.fileName}
+                    className="w-[200px] h-[200px] object-cover rounded-lg"
+                    onClick={() => window.open(message.fileUrl, "_blank")}
+                  />
+                </div>
               ) : (
                 <a
                   href={message.fileUrl}
