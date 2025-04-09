@@ -11,4 +11,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    host: '192.168.1.10', // Bind to all network interfaces
+    port: 5173,      // Optional: specify port (default is 5173)
+  },
 })
