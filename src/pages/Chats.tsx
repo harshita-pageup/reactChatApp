@@ -2,13 +2,13 @@ import axiosInstance from '@/api/axiosInstance';
 import { ChatSidebar } from '@/components/chat-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { useUser } from '@/context/UserContext';
-import { ChatUser, User } from '@/types/auth';
+import { ChatUser, ExtendedMessage, User } from '@/types/auth';
 import { UserPlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
 import { getToken, removeToken } from '@/utils/auth';
 import { useChatUsers } from '@/context/UserListContext';
-import { BASE_URL, PUSHER_APP_CLUSTER, PUSHER_APP_KEY } from '@/api/enviornment';
+import { BASE_URL, ENABLE_PUSHER, PUSHER_APP_CLUSTER, PUSHER_APP_KEY } from '@/api/enviornment';
 import { AxiosError } from 'axios';
 import { useNavigate } from 'react-router';
 import ChatScreen from './ChatScreen';
@@ -36,69 +36,75 @@ const Chats = () => {
   });
 
   useEffect(() => {
-    // const channel = pusher.subscribe('presence-chat');
+    if (ENABLE_PUSHER) {
+      const channel = pusher.subscribe('presence-chat');
 
-    // channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
-    //   console.log('Pusher: Subscription succeeded.');
-    //   Object.keys(members).map((value: string) => {
-    //     let onlineUser = members[value].user as User
-    //     setChatUsers((prev) => {
-    //       const updatedChatUsers = prev.map((user: any) => {
-    //         if (user.id === onlineUser.id) {
-    //           return { ...user, isOnline: true };
-    //         }
-    //         return user;
-    //       });
-    //       return updatedChatUsers;
-    //     });
-    //   })
-    // });
+      channel.bind('pusher:subscription_succeeded', ({ members }: { members: any }) => {
+        console.log('Pusher: Subscription succeeded.');
+        Object.keys(members).map((value: string) => {
+          let onlineUser = members[value].user as User
+          setChatUsers((prev) => {
+            const updatedChatUsers = prev.map((user: any) => {
+              if (user.id === onlineUser.id) {
+                return { ...user, isOnline: true };
+              }
+              return user;
+            });
+            return updatedChatUsers;
+          });
+        })
+      });
 
-    // channel.bind('pusher:member_added', (member: any) => {
-    //   console.log('Pusher: New member added.');
-    //   setChatUsers((prev) => {
-    //     const updatedChatUsers = prev.map((user: any) => {
-    //       if (user.id === member.info.user.id) {
-    //         return { ...user, isOnline: true };
-    //       }
-    //       return user;
-    //     });
-    //     return updatedChatUsers;
-    //   });
-    // });
+      channel.bind('pusher:member_added', (member: any) => {
+        console.log('Pusher: New member added.');
+        setChatUsers((prev) => {
+          const updatedChatUsers = prev.map((user: any) => {
+            if (user.id === member.info.user.id) {
+              return { ...user, isOnline: true };
+            }
+            return user;
+          });
+          return updatedChatUsers;
+        });
+      });
 
-    // channel.bind('pusher:member_removed', (member: any) => {
-    //   console.log('Pusher: Member removed.');
-    //   setChatUsers((prev) => {
-    //     const updatedChatUsers = prev.map((user: any) => {
-    //       if (user.id === member.info.user.id) {
-    //         return { ...user, isOnline: false };
-    //       }
-    //       return user;
-    //     });
-    //     return updatedChatUsers;
-    //   });
-    // });
+      channel.bind('pusher:member_removed', (member: any) => {
+        console.log('Pusher: Member removed.');
+        setChatUsers((prev) => {
+          const updatedChatUsers = prev.map((user: any) => {
+            if (user.id === member.info.user.id) {
+              return { ...user, isOnline: false };
+            }
+            return user;
+          });
+          return updatedChatUsers;
+        });
+      });
 
-    // const chatUserChannel = pusher.subscribe(`newMessage.${user!.id}`);
-    // chatUserChannel.bind('newMessage', ({ message }: { message: ExtendedMessage }) => {
-    //   console.log('Pusher: Updating the typing status.');
-    //   setChatUsers((prev) => {
-    //     const updatedChatUsers = prev.map((users) => {
-    //       if (users.id === message.receiverId) {
-    //         return { ...users, lastMsg: message.message, lastMsgDate: new Date().toLocaleString('sv') };
-    //       }
-    //       return users;
-    //     });
-    //     return updatedChatUsers;
-    //   })
-    // });
+      if (user) {
+        const chatUserChannel = pusher.subscribe(`newMessage.${user!.id}`);
+        chatUserChannel.bind('newMessage', ({ message }: { message: ExtendedMessage }) => {
+          console.log('Pusher: Updating the last message and time.');
+          setChatUsers((prev) => {
+            const updatedChatUsers = prev.map((users) => {
+              if (users.id === message.receiverId) {
+                return { ...users, lastMsg: message.message, lastMsgDate: new Date().toLocaleString('sv') };
+              }
+              return users;
+            });
+            return updatedChatUsers;
+          })
+        });
+      }
+    }
 
     return () => {
-      // pusher.unsubscribe('presence-chat');
-      // if (user) {
-      //   pusher.unsubscribe(`newMessage.${user!.id}`);
-      // }
+      if (ENABLE_PUSHER) {
+        pusher.unsubscribe('presence-chat');
+        if (user) {
+          pusher.unsubscribe(`newMessage.${user!.id}`);
+        }
+      }
     };
   }, [user]);
 
@@ -176,10 +182,10 @@ const Chats = () => {
       setUser(res.data.data);
     }).catch((error: AxiosError) => {
       if (error.status === 401) {
-          removeToken();
-          setUser(null);
-          navigate('/');
-          return;
+        removeToken();
+        setUser(null);
+        navigate('/');
+        return;
       }
     });
   }, []);

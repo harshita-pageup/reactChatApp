@@ -8,7 +8,7 @@ import { Loader2, Paperclip, Phone, SendHorizonal, SmilePlus, Video, X } from 'l
 import { useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
 import { useChatUsers } from '@/context/UserListContext';
-import { BASE_URL, PUSHER_APP_CLUSTER, PUSHER_APP_KEY } from '@/api/enviornment';
+import { BASE_URL, ENABLE_PUSHER, PUSHER_APP_CLUSTER, PUSHER_APP_KEY } from '@/api/enviornment';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 
 type ChatScreenProps = {
@@ -68,7 +68,6 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
   };
 
   useEffect(() => {
-    console.log('Pusher: Updating the typing status.')
     updateTypingStatus(isTyping);
   }, [isTyping]);
 
@@ -107,100 +106,104 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
     fetchMessages(selectedUser.id);
 
-    // const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
-    // channel.bind('new-message', ({ message }: { message: ExtendedMessage }) => {
-    //   console.log('Pusher: Updating the new message.');
-    //   let date = new Date().toLocaleString('sv').split(' ')[0];
-    //   setMessages((prev) => {
-    //     const updatedMessages = { ...prev };
-    //     if (!updatedMessages[date]) {
-    //       updatedMessages[date] = [];
-    //     }
-    //     // Check if the message id already exists for the current date
-    //     const messageExists = updatedMessages[date].some(msg => msg.id === message.id);
-
-    //     // If the message doesn't exist, add it to the array
-    //     if (!messageExists) {
-    //       updatedMessages[date] = [
-    //         ...updatedMessages[date],
-    //         {
-    //           id: message.id,
-    //           message: message.message,
-    //           senderId: message.senderId,
-    //           receiverId: message.receiverId,
-    //           sender: message.sender,
-    //           receiver: message.receiver,
-    //           isSender: user!.id === message.senderId,
-    //           replyTo: message.replyTo,
-    //           reactions: [],
-    //           date: date,
-    //           fileUrl: message.fileUrl,
-    //           fileName: message.fileName,
-    //           fileType: message.fileType
-    //         },
-    //       ];
-    //     }
-    //     return updatedMessages;
-    //   });
-    // });
-
-    // const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
-    // chatChannel.bind('user-typing', ({ isTyping }: { userId: number, isTyping: boolean }) => {
-    //   console.log('Pusher: Updating the typing status.');
-    //   setTypingTxt(isTyping ? 'typing...' : 'online');
-    // });
-
-    // const reactionChannel = pusher.subscribe(`reaction.${selectedUser.id}`);
-    // reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User, date: string }) => {
-    //   console.log('Pusher: Updating the reaction of the message.')
-    //   let date = data.date;
-    //   setMessages((prev) => {
-    //     const updatedMessages = { ...prev };
-    //     const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === data.messageId);
-
-    //     if (messageToUpdate) {
-    //       const existingReactionIndex = messageToUpdate.reactions.findIndex(
-    //         (r) => r.user.id === data.userId
-    //       );
-
-    //       if (existingReactionIndex !== -1) {
-    //         messageToUpdate.reactions = [
-    //           ...messageToUpdate.reactions.slice(0, existingReactionIndex),
-    //           {
-    //             ...messageToUpdate.reactions[existingReactionIndex],
-    //             emojie: data.emojie,
-    //           },
-    //           ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
-    //         ];
-    //       } else {
-    //         messageToUpdate.reactions = [
-    //           ...messageToUpdate.reactions,
-    //           {
-    //             emojie: data.emojie,
-    //             user: {
-    //               id: data.user!.id,
-    //               name: data.user!.name,
-    //               email: data.user!.email,
-    //               profile: data.user!.profile || '',
-    //               isOnline: false
-    //             },
-    //           },
-    //         ];
-    //       }
-
-    //       updatedMessages[date] = updatedMessages[date].map((msg) =>
-    //         msg.id === data.messageId ? { ...msg } : msg
-    //       );
-    //     }
-
-    //     return updatedMessages;
-    //   });
-    // });
+    if (ENABLE_PUSHER) {
+      const channel = pusher.subscribe(`chat.${user!.id}.${selectedUser.id}`);
+      channel.bind('new-message', ({ message }: { message: ExtendedMessage }) => {
+        console.log('Pusher: Updating the new message.');
+        let date = new Date().toLocaleString('sv').split(' ')[0];
+        setMessages((prev) => {
+          const updatedMessages = { ...prev };
+          if (!updatedMessages[date]) {
+            updatedMessages[date] = [];
+          }
+          // Check if the message id already exists for the current date
+          const messageExists = updatedMessages[date].some(msg => msg.id === message.id);
+  
+          // If the message doesn't exist, add it to the array
+          if (!messageExists) {
+            updatedMessages[date] = [
+              ...updatedMessages[date],
+              {
+                id: message.id,
+                message: message.message,
+                senderId: message.senderId,
+                receiverId: message.receiverId,
+                sender: message.sender,
+                receiver: message.receiver,
+                isSender: user!.id === message.senderId,
+                replyTo: message.replyTo,
+                reactions: [],
+                date: date,
+                fileUrl: message.fileUrl,
+                fileName: message.fileName,
+                fileType: message.fileType
+              },
+            ];
+          }
+          return updatedMessages;
+        });
+      });
+  
+      const chatChannel = pusher.subscribe(`chat.${selectedUser.id}`);
+      chatChannel.bind('user-typing', ({ isTyping }: { userId: number, isTyping: boolean }) => {
+        console.log('Pusher: Updating the typing status.');
+        setTypingTxt(isTyping ? 'typing...' : 'online');
+      });
+  
+      const reactionChannel = pusher.subscribe(`reaction.${selectedUser.id}`);
+      reactionChannel.bind('new-reaction', (data: { messageId: number; userId: number; emojie: string, user: User, date: string }) => {
+        console.log('Pusher: Updating the reaction of the message.')
+        let date = data.date;
+        setMessages((prev) => {
+          const updatedMessages = { ...prev };
+          const messageToUpdate = updatedMessages[date]?.find((msg) => msg.id === data.messageId);
+  
+          if (messageToUpdate) {
+            const existingReactionIndex = messageToUpdate.reactions.findIndex(
+              (r) => r.user.id === data.userId
+            );
+  
+            if (existingReactionIndex !== -1) {
+              messageToUpdate.reactions = [
+                ...messageToUpdate.reactions.slice(0, existingReactionIndex),
+                {
+                  ...messageToUpdate.reactions[existingReactionIndex],
+                  emojie: data.emojie,
+                },
+                ...messageToUpdate.reactions.slice(existingReactionIndex + 1),
+              ];
+            } else {
+              messageToUpdate.reactions = [
+                ...messageToUpdate.reactions,
+                {
+                  emojie: data.emojie,
+                  user: {
+                    id: data.user!.id,
+                    name: data.user!.name,
+                    email: data.user!.email,
+                    profile: data.user!.profile || '',
+                    isOnline: false
+                  },
+                },
+              ];
+            }
+  
+            updatedMessages[date] = updatedMessages[date].map((msg) =>
+              msg.id === data.messageId ? { ...msg } : msg
+            );
+          }
+  
+          return updatedMessages;
+        });
+      });
+    }
 
     return () => {
-      // pusher.unsubscribe(`chat.${user!.id}.${selectedUser.id}`);
-      // pusher.unsubscribe(`chat.${selectedUser.id}`);
-      // pusher.unsubscribe(`reaction.${selectedUser.id}`);
+      if (ENABLE_PUSHER) {
+        pusher.unsubscribe(`chat.${user!.id}.${selectedUser.id}`);
+        pusher.unsubscribe(`chat.${selectedUser.id}`);
+        pusher.unsubscribe(`reaction.${selectedUser.id}`);
+      }
     };
   }, [selectedUser]);
 
@@ -307,7 +310,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
         setChatUsers((prev) => {
           const updatedChatUsers = prev.map((user) => {
             if (user.id === selectedUser.id) {
-              return { ...user, lastMsg: message, lastMsgDate: new Date().toLocaleString('sv') };
+              return { ...user, lastMsg: message ?? 'Attachment attached', lastMsgDate: new Date().toLocaleString('sv') };
             }
             return user;
           });
@@ -397,6 +400,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
     const lastDateObj = messages[Object.keys(messages)[Object.keys(messages).length - 1]];
     if (lastDateObj) {
       let lastDate = lastDateObj[lastDateObj.length - 1];
+      console.log(lastMsgDate !== undefined && lastMsgDate !== lastDate.date && (lastDate.isSender || lastMsgDate === ''));
       if (lastMsgDate !== undefined && lastMsgDate !== lastDate.date && (lastDate.isSender || lastMsgDate === '')) {
         chatRef.current?.scrollIntoView();
       }
@@ -422,7 +426,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
 
   return (
     <>
-      <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-20">
+      <div className="fixed top-0 right-0 flex justify-between items-center px-4 py-3 bg-sidebar h-16 w-[calc(100%-20rem)] z-30">
         <div className="flex items-center gap-4">
           <img src={selectedUser.profile != null ? `${BASE_URL}/uploads/${selectedUser.profile}` : `https://ui-avatars.com/api/?background=222&color=fff&name=${selectedUser.name}`} className='w-12 h-12 rounded-full object-cover' />
           <div className="flex flex-col justify-center">
@@ -474,9 +478,9 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
       <div className="fixed bottom-0 right-0 w-[calc(100%-20rem)] z-20 bg-sidebar">
         {(replyMsg || selectedFile) && (
           <div className="flex justify-center items-end px-4 h-12 pt-1.5 gap-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => {
                 setReplyMsg(null);
                 setSelectedFile(null);
@@ -488,23 +492,22 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
             </Button>
             <div className="w-full flex justify-start items-center gap-2 bg-accent h-full rounded-md px-2 py-1">
               <div className="w-1 rounded-md bg-primary h-full my-2"></div>
-              {/* <div className="flex flex-col">
-                <h4 className="text-sm leading-4 font-bold">
-                  {replyMsg.isSender ? "You" : selectedUser.name}
-                </h4>
-                <p className="text-xs line-clamp-1">{replyMsg.message}</p>
-              </div> */}
               <div className="flex flex-col flex-1">
                 {selectedFile ? (
                   <>
-                    <h4 className="text-sm leading-4 font-bold">File Attachment</h4>
                     {filePreview && selectedFile.type.startsWith('image/') ? (
                       <div className="flex items-center gap-2">
                         <img src={filePreview} alt="Preview" className="h-8 w-8 object-cover rounded" />
-                        <p className="text-xs line-clamp-1">{selectedFile.name}</p>
+                        <div className="flex flex-col justify-center items-start">
+                          <h4 className="text-sm leading-4 font-bold">File Attachment</h4>
+                          <p className="text-xs line-clamp-1">{selectedFile.name}</p>
+                        </div>
                       </div>
                     ) : (
-                      <p className="text-xs line-clamp-1">{selectedFile.name}</p>
+                      <div className="flex flex-col justify-center items-start">
+                        <h4 className="text-sm leading-4 font-bold">File Attachment</h4>
+                        <p className="text-xs line-clamp-1">{selectedFile.name}</p>
+                      </div>
                     )}
                   </>
                 ) : replyMsg && (
@@ -551,7 +554,7 @@ function ChatScreen({ selectedUser, chatUsers }: ChatScreenProps) {
               }
             }}
           />
-          <Button type="submit" disabled={!typeMsg.trim()} size="icon">
+          <Button type="submit" disabled={!typeMsg.trim() && !selectedFile} size="icon">
             {sendMsgLoading ? (
               <Loader2 className='animate-spin' />
             ) : (
